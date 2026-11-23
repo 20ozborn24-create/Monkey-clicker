@@ -21,6 +21,7 @@
         src="img/loading-bg.png"
         alt=""
         aria-hidden="true"
+        decoding="async"
         onload="this.parentElement.classList.add('has-bg-art')"
         onerror="if(!this.dataset.f){this.dataset.f='1';this.src='img/loading-bg.jpg';}else if(this.dataset.f==='1'){this.dataset.f='2';this.src='img/loading-bg.webp';}else{this.style.display='none';}"
       />
@@ -88,7 +89,7 @@
 
         <div class="loading-logo-wrap" aria-label="Monkey Clicker">
           <div class="loading-logo-halo" aria-hidden="true"></div>
-          <img class="banana-logo-img" src="img/logo.png" alt="Monkey Clicker" draggable="false" />
+          <img class="banana-logo-img" src="img/logo.png" alt="Monkey Clicker" draggable="false" decoding="async" />
           <span class="logo-sparkle s1" aria-hidden="true">✦</span>
           <span class="logo-sparkle s2" aria-hidden="true">✦</span>
           <span class="logo-sparkle s3" aria-hidden="true">✧</span>
@@ -159,9 +160,9 @@
           <div id="loadingReadyBadge" class="loading-ready-badge hidden">✓ Джунгли готовы к сбору урожая!</div>
 
           <button id="startGameBtn" class="start-game-btn hidden" type="button" aria-label="Начать игру">
-            <img class="start-btn-img start-img-normal" src="img/start-normal.png" alt="Начать игру" draggable="false" />
-            <img class="start-btn-img start-img-hover" src="img/start-hover.png" alt="" aria-hidden="true" draggable="false" />
-            <img class="start-btn-img start-img-active" src="img/start-active.png" alt="" aria-hidden="true" draggable="false" />
+            <img class="start-btn-img start-img-normal" src="img/start-normal.png" alt="Начать игру" draggable="false" decoding="async" />
+            <img class="start-btn-img start-img-hover" src="img/start-hover.png" alt="" aria-hidden="true" draggable="false" decoding="async" />
+            <img class="start-btn-img start-img-active" src="img/start-active.png" alt="" aria-hidden="true" draggable="false" decoding="async" />
           </button>
 
           <div id="loadingTipCard" class="loading-tip-card">
@@ -172,7 +173,7 @@
       </div>
     </div>
 
-    <div id="bgArtLayer" class="bg-art-layer"><img class="bg-art-img" alt="" aria-hidden="true" /></div>
+    <div id="bgArtLayer" class="bg-art-layer"><img class="bg-art-img" alt="" aria-hidden="true" decoding="async" /></div>
     <div id="bgAmbientLayer" class="bg-ambient-layer"></div>
     <div id="bgDropsLayer" class="bg-drops-layer"></div>
     <button id="goldenBananaBtn" class="golden-banana-btn hidden" type="button" aria-label="Поймать золотой банан"></button>
