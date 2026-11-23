@@ -40,7 +40,10 @@ jobs:
           python3 -m pip install --quiet pillow
           python3 - <<'PY'
           import os
-          from PIL import Image, ImageDraw
+          from PIL import Image, ImageDraw, PngImagePlugin
+
+          Image.MAX_IMAGE_PIXELS = None
+          PngImagePlugin.MAX_TEXT_CHUNK = 100 * (1024 ** 2)
 
           src = Image.open("img/icon.png").convert("RGBA")
           m = max(src.size)
