@@ -30,8 +30,6 @@
   z-index: 0;
   opacity: 0;
   transition: opacity 0.3s ease;
-  animation: loadingBgBreathe 16s ease-in-out infinite;
-  will-change: transform;
 }
 .loading-screen.has-bg-art .loading-bg-art {
   opacity: 1;
@@ -40,11 +38,6 @@
 .loading-screen.has-bg-art .loading-sunbeams,
 .loading-screen.has-bg-art .loading-palms {
   display: none;
-}
-
-@keyframes loadingBgBreathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.045); }
 }
 
 .loading-settings-btn {
@@ -255,9 +248,10 @@
   display: block;
   pointer-events: none;
   user-select: none;
-  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 14px rgba(250, 204, 21, 0.25));
   animation: logoFloatAlive 3.4s ease-in-out infinite;
   will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 .logo-sparkle {
   position: absolute;
@@ -365,7 +359,7 @@
 @keyframes godClickHop {
   0%   { transform: translateY(0) scale(1, 1); }
   25%  { transform: translateY(4px) scale(1.1, 0.88); }
-  60%  { transform: translateY(-16px) scale(0.95, 1.08); filter: brightness(1.18); }
+  60%  { transform: translateY(-16px) scale(0.95, 1.08); }
   100% { transform: translateY(0) scale(1, 1); }
 }
 
@@ -392,6 +386,8 @@
   align-items: center;
   justify-content: center;
   animation: monkeyImgIdle 2.6s ease-in-out infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 .loading-god-visual img.monkey-img,
 .loading-god-visual svg {
@@ -399,9 +395,6 @@
   height: 100%;
   object-fit: contain;
   display: block;
-  filter:
-    drop-shadow(0 10px 16px rgba(0, 0, 0, 0.6))
-    drop-shadow(0 0 20px rgba(253, 224, 71, 0.65));
 }
 
 .loading-pedestal-wrap {
@@ -556,9 +549,9 @@
   display: block;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.6));
   animation: startBtnAppear 0.35s cubic-bezier(0.2, 1.3, 0.4, 1), startBtnPulse 2.4s ease-in-out infinite;
-  transition: transform 0.08s ease, filter 0.15s ease;
+  transition: transform 0.08s ease;
+  will-change: transform;
 }
 .start-btn-img {
   width: 100%;
@@ -592,7 +585,6 @@
 @media (hover: hover) {
   .start-game-btn:hover:not(.is-pressed) {
     transform: translateY(-1px) scale(1.02);
-    filter: drop-shadow(0 10px 22px rgba(74, 222, 128, 0.38));
   }
   .start-game-btn:hover:not(.is-pressed) .start-img-hover {
     opacity: 1;
@@ -604,7 +596,6 @@
 .start-game-btn:active,
 .start-game-btn.is-pressed {
   transform: translateY(3px) scale(0.98);
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.75));
   animation: none;
 }
 .start-game-btn:active .start-img-normal,
