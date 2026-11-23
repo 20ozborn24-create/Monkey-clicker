@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#121814" />
+  <title>Monkey Clicker</title>
+  <link rel="icon" type="image/png" href="img/icon.png" />
+  <link rel="apple-touch-icon" href="img/icon.png" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/loading.css" />
+  <link rel="stylesheet" href="css/shop.css" />
+  <link rel="stylesheet" href="css/modals.css" />
+  <link rel="stylesheet" href="css/fx.css" />
+</head>
+<body>
+  <div id="appShell" class="app-shell">
+    <div id="loadingScreen" class="loading-screen">
+      <img
+        class="loading-bg-art"
+        src="img/loading-bg.png"
+        alt=""
+        aria-hidden="true"
+        onload="this.parentElement.classList.add('has-bg-art')"
+        onerror="if(!this.dataset.f){this.dataset.f='1';this.src='img/loading-bg.jpg';}else if(this.dataset.f==='1'){this.dataset.f='2';this.src='img/loading-bg.webp';}else{this.style.display='none';}"
+      />
+      <div class="loading-bg-glow"></div>
+      <div class="loading-sunbeams"></div>
+      <div class="loading-vignette"></div>
+
+      <div class="loading-palms" aria-hidden="true">
+        <svg class="palm-corner palm-tl" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+          <path d="M -6 -6 Q 60 12, 118 58 Q 62 42, -6 22 Z" fill="#14532d"/>
+          <path d="M -6 10 Q 52 38, 88 94 Q 44 66, -6 44 Z" fill="#166534"/>
+          <path d="M 10 -6 Q 78 2, 128 32 Q 74 22, 12 10 Z" fill="#15803d"/>
+          <path d="M -4 -4 Q 45 28, 74 68" fill="none" stroke="#4ade80" stroke-width="1.6" opacity="0.45"/>
+        </svg>
+        <svg class="palm-corner palm-tr" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 146 -6 Q 80 12, 22 58 Q 78 42, 146 22 Z" fill="#14532d"/>
+          <path d="M 146 10 Q 88 38, 52 94 Q 96 66, 146 44 Z" fill="#166534"/>
+          <path d="M 130 -6 Q 62 2, 12 32 Q 66 22, 128 10 Z" fill="#15803d"/>
+          <path d="M 144 -4 Q 95 28, 66 68" fill="none" stroke="#4ade80" stroke-width="1.6" opacity="0.45"/>
+        </svg>
+        <svg class="palm-corner palm-bl" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+          <path d="M -6 146 Q 55 120, 112 86 Q 62 96, -6 118 Z" fill="#064e3b"/>
+          <path d="M -6 130 Q 42 88, 72 44 Q 40 78, -6 96 Z" fill="#14532d"/>
+          <path d="M -4 144 Q 46 112, 82 78" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0.35"/>
+        </svg>
+        <svg class="palm-corner palm-br" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 146 146 Q 85 120, 28 86 Q 78 96, 146 118 Z" fill="#064e3b"/>
+          <path d="M 146 130 Q 98 88, 68 44 Q 100 78, 146 96 Z" fill="#14532d"/>
+          <path d="M 144 144 Q 94 112, 58 78" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0.35"/>
+        </svg>
+
+        <svg class="loading-top-vines" viewBox="0 0 400 72" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M -10 8 Q 95 44, 200 18 Q 305 42, 410 8" fill="none" stroke="#15803d" stroke-width="3.2" opacity="0.75"/>
+          <path d="M 35 19 Q 26 32, 37 40 Q 46 31, 35 19 Z" fill="#22c55e" opacity="0.85"/>
+          <path d="M 88 29 Q 76 44, 89 54 Q 99 42, 88 29 Z" fill="#16a34a" opacity="0.85"/>
+          <path d="M 144 26 Q 135 38, 145 46 Q 154 36, 144 26 Z" fill="#4ade80" opacity="0.7"/>
+          <path d="M 256 26 Q 247 38, 257 46 Q 266 36, 256 26 Z" fill="#4ade80" opacity="0.7"/>
+          <path d="M 312 29 Q 301 42, 311 54 Q 324 44, 312 29 Z" fill="#16a34a" opacity="0.85"/>
+          <path d="M 365 19 Q 354 31, 363 40 Q 374 32, 365 19 Z" fill="#22c55e" opacity="0.85"/>
+          <circle cx="62" cy="24" r="3" fill="#fde047" opacity="0.8"/>
+          <circle cx="338" cy="24" r="3" fill="#fb7185" opacity="0.8"/>
+        </svg>
+      </div>
+
+      <div class="loading-fireflies" aria-hidden="true">
+        <span class="firefly f1"></span>
+        <span class="firefly f2"></span>
+        <span class="firefly f3"></span>
+        <span class="firefly f4"></span>
+        <span class="firefly f5"></span>
+        <span class="firefly f6"></span>
+        <span class="firefly f7"></span>
+        <span class="firefly f8"></span>
+        <span class="firefly f9"></span>
+        <span class="firefly f10"></span>
+        <span class="firefly f11"></span>
+        <span class="firefly f12"></span>
+      </div>
+
+      <button id="loadingSettingsBtn" class="icon-btn loading-settings-btn" type="button" aria-label="Настройки" title="Настройки" data-svg="ico-settings"></button>
+
+      <div class="loading-content">
+        <div class="loading-subtitle">🌴 ТРОПИЧЕСКИЙ КЛИКЕР 🌴</div>
+        <div id="loadingWelcomePill" class="loading-welcome-pill">✨ Добро пожаловать в джунгли!</div>
+
+        <div class="loading-logo-wrap" aria-label="Monkey Clicker">
+          <div class="loading-logo-halo" aria-hidden="true"></div>
+          <img class="banana-logo-img" src="img/logo.png" alt="Monkey Clicker" draggable="false" />
+          <span class="logo-sparkle s1" aria-hidden="true">✦</span>
+          <span class="logo-sparkle s2" aria-hidden="true">✦</span>
+          <span class="logo-sparkle s3" aria-hidden="true">✧</span>
+          <span class="logo-sparkle s4" aria-hidden="true">✦</span>
+        </div>
+
+        <div class="eating-monkey-stage">
+          <div class="loading-god-rays"></div>
+          <div class="eating-spotlight"></div>
+          <div class="loading-god-orbit">
+            <span class="god-orb o1">✦</span>
+            <span class="god-orb o2">🍌</span>
+            <span class="god-orb o3">✦</span>
+          </div>
+          <button id="loadingGodBtn" class="loading-god-btn" type="button" aria-label="Нажать на Банан-Бога">
+            <div id="loadingMonkeyVisual" class="loading-god-visual"></div>
+          </button>
+          <div class="loading-pedestal-wrap" aria-hidden="true">
+            <svg class="loading-pedestal-svg" viewBox="0 0 210 56" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="pedGoldRim" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#92400e"/>
+                  <stop offset="25%" stop-color="#fde047"/>
+                  <stop offset="50%" stop-color="#fffbeb"/>
+                  <stop offset="75%" stop-color="#f59e0b"/>
+                  <stop offset="100%" stop-color="#78350f"/>
+                </linearGradient>
+                <linearGradient id="pedStoneBody" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#3f5446"/>
+                  <stop offset="55%" stop-color="#1e2f24"/>
+                  <stop offset="100%" stop-color="#0b140e"/>
+                </linearGradient>
+                <radialGradient id="pedTopGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#fef08a" stop-opacity="0.72"/>
+                  <stop offset="65%" stop-color="#f59e0b" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#14532d" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <ellipse cx="105" cy="46" rx="92" ry="9" fill="rgba(0,0,0,0.6)"/>
+              <path d="M 28 24 L 182 24 L 194 44 Q 105 55, 16 44 Z" fill="url(#pedStoneBody)" stroke="#451a03" stroke-width="1.6"/>
+              <path d="M 24 22 L 186 22 L 189 29 Q 105 37, 21 29 Z" fill="url(#pedGoldRim)" stroke="#78350f" stroke-width="1.4"/>
+              <ellipse cx="105" cy="21" rx="82" ry="12" fill="#182b20" stroke="url(#pedGoldRim)" stroke-width="2.4"/>
+              <ellipse cx="105" cy="21" rx="68" ry="8.5" fill="url(#pedTopGlow)"/>
+              <polygon points="105,32 109,37 105,42 101,37" fill="#fde047" opacity="0.9"/>
+              <polygon points="64,31 67,35 64,39 61,35" fill="#4ade80" opacity="0.75"/>
+              <polygon points="146,31 149,35 146,39 143,35" fill="#4ade80" opacity="0.75"/>
+              <path d="M 22 39 Q 10 31, 14 23 Q 23 26, 26 35 Z" fill="#16a34a" stroke="#052e16" stroke-width="1.2"/>
+              <path d="M 188 39 Q 200 31, 196 23 Q 187 26, 184 35 Z" fill="#16a34a" stroke="#052e16" stroke-width="1.2"/>
+            </svg>
+          </div>
+          <div class="loading-god-tag">✨ АБСОЛЮТНЫЙ БАНАН-БОГ ✨</div>
+        </div>
+
+        <div class="loading-controls">
+          <div id="loadingBarWrap" class="loading-bar-wrap">
+            <div class="loading-bar-header">
+              <span id="loadingStatusText" class="loading-status-label">Выращиваем бананы...</span>
+              <span id="loadingPercentText" class="loading-percent-pill">0%</span>
+            </div>
+            <div class="loading-bar-track">
+              <div id="loadingBarFill" class="loading-bar-fill">
+                <span class="loading-bar-orb"></span>
+              </div>
+              <div class="loading-bar-gloss"></div>
+            </div>
+          </div>
+
+          <div id="loadingReadyBadge" class="loading-ready-badge hidden">✓ Джунгли готовы к сбору урожая!</div>
+
+          <button id="startGameBtn" class="start-game-btn hidden" type="button" aria-label="Начать игру">
+            <img class="start-btn-img start-img-normal" src="img/start-normal.png" alt="Начать игру" draggable="false" />
+            <img class="start-btn-img start-img-hover" src="img/start-hover.png" alt="" aria-hidden="true" draggable="false" />
+            <img class="start-btn-img start-img-active" src="img/start-active.png" alt="" aria-hidden="true" draggable="false" />
+          </button>
+
+          <div id="loadingTipCard" class="loading-tip-card">
+            <span class="loading-tip-badge">💡 СОВЕТ</span>
+            <span id="loadingTipText" class="loading-tip-text">За каждые 25 штук одного сорта банана его доход растёт в ×1.5!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="bgArtLayer" class="bg-art-layer"><img class="bg-art-img" alt="" aria-hidden="true" /></div>
+    <div id="bgAmbientLayer" class="bg-ambient-layer"></div>
+    <div id="bgDropsLayer" class="bg-drops-layer"></div>
+    <button id="goldenBananaBtn" class="golden-banana-btn hidden" type="button" aria-label="Поймать золотой банан"></button>
+
+    <header class="top-bar">
+      <button id="profileBtn" class="profile-trigger" type="button" aria-label="Открыть профиль">
+        <div class="profile-avatar-col">
+          <div id="headerAvatarFrame" class="avatar-frame-wrap small">
+            <div class="avatar-frame-ring"></div><div id="headerAvatar" class="avatar-circle"></div><div class="avatar-frame-deco"></div>
+          </div>
+          <span id="headerLevelBadge" class="avatar-level-pill">Ур. 0</span>
+        </div>
+        <div class="profile-meta">
+          <div class="profile-name-row">
+            <span id="headerNickname" class="profile-name nick-styled">BananaPro</span>
+            <span id="premiumHeaderBadge" class="vip-pill-badge hidden">👑 VIP</span>
+          </div>
+          <span class="profile-hint">Профиль ▾</span>
+        </div>
+      </button>
+      <div class="top-actions">
+        <div class="diamond-pill" title="Алмазы">
+          <span class="diamond-icon" data-svg="ico-diamond" data-svg-class="diamond-svg"></span>
+          <span id="diamondCount">0</span>
+        </div>
+        <button id="dailyBonusBtn" class="icon-btn daily-bonus-btn" type="button" aria-label="Ежедневные награды" title="Ежедневный вход">
+          <span class="daily-btn-svg" data-svg="ico-daily"></span>
+          <span id="dailyBonusBadge" class="menu-alert-badge hidden">!</span>
+        </button>
+        <button id="settingsBtn" class="icon-btn" type="button" aria-label="Настройки" data-svg="ico-settings"></button>
+      </div>
+    </header>
+
+    <nav class="menu-dock" aria-label="Меню">
+      <button id="customMenuBtn" class="menu-btn menu-custom" type="button">
+        <span class="menu-btn-icon" aria-hidden="true" data-svg="ico-custom"></span>
+        <span class="menu-btn-text">Кастомизация</span>
+      </button>
+
+      <button id="questsMenuBtn" class="menu-btn menu-quests" type="button">
+        <span class="menu-btn-icon" aria-hidden="true" data-svg="ico-quests"></span>
+        <span class="menu-btn-text">Задания</span>
+        <span id="questsBtnBadge" class="menu-alert-badge hidden">!</span>
+      </button>
+
+      <button id="achievementsMenuBtn" class="menu-btn menu-ach" type="button">
+        <span class="menu-btn-icon" aria-hidden="true" data-svg="ico-ach"></span>
+        <span class="menu-btn-text">Достижения</span>
+        <span id="achBtnBadge" class="menu-alert-badge hidden">!</span>
+      </button>
+    </nav>
+
+    <section class="stats-banner">
+      <div class="balance-row"><span id="headerBananaIcon" class="banana-coin-svg"></span><span id="bananaCount" class="balance-value">0</span></div>
+      <div class="rates-row">
+        <span class="rate-pill"><span class="rate-icon" data-svg="ico-tap" aria-hidden="true"></span><strong id="bpcDisplay">0.5</strong> / клик</span>
+        <span class="rate-pill"><span class="rate-icon" data-svg="ico-rate-bps" aria-hidden="true"></span><strong id="bpsDisplay">0</strong> / сек</span>
+        <span id="ratesVipBadge" class="rate-pill vip-rate-pill hidden">👑 <strong>×2</strong></span>
+        <span id="goldenClickBadge" class="rate-pill boost-rate-pill hidden">⚡ <strong>×3 клик</strong> <span id="goldenClickSec">30с</span></span>
+        <span id="goldenBpsBadge" class="rate-pill boost-rate-pill bps-boost hidden">🌟 <strong>×3/сек</strong> <span id="goldenBpsSec">30с</span></span>
+      </div>
+    </section>
+
+    <main class="tap-stage" id="tapStage">
+      <div class="monkey-title-badge" id="activeMonkeyBadge"><span id="activeMonkeyName">Мартышка Пушок</span></div>
+      <button id="monkeyTapBtn" class="monkey-button" type="button" aria-label="Кликнуть по обезьяне">
+        <div class="monkey-aura" id="monkeyAura"></div>
+        <div class="monkey-orbit">
+          <span class="orbit-dot d1"></span>
+          <span class="orbit-dot d2"></span>
+          <span class="orbit-dot d3"></span>
+        </div>
+        <div class="monkey-core-bg">
+          <div class="monkey-rays"></div>
+          <div class="monkey-shine"></div>
+        </div>
+        <div class="monkey-visual" id="monkeyEmoji"></div>
+      </button>
+      <div class="tap-hint" id="activeMonkeyDesc">Маленькая, но шустрая!</div>
+      <div class="fever-row">
+        <div class="fever-left-stack">
+          <button id="levelBtn" class="stage-mini-btn level-mini-btn" type="button" aria-label="Уровень аккаунта" title="Уровень аккаунта и сброс прогресса">
+            <span class="mini-btn-svg" data-svg="ico-level"></span>
+            <span id="levelBtnValue" class="mini-level-pill">Ур.0</span>
+            <span id="levelBtnBadge" class="menu-alert-badge hidden">!</span>
+          </button>
+          <button id="wheelBtn" class="stage-mini-btn wheel-mini-btn" type="button" aria-label="Колесо фортуны" title="Колесо фортуны (раз в 12ч)">
+            <span class="mini-btn-svg" data-svg="ico-wheel"></span>
+            <span id="wheelReadyDot" class="mini-ready-dot hidden"></span>
+          </button>
+          <button id="coconutsBtn" class="stage-mini-btn coconuts-mini-btn" type="button" aria-label="Кокосы удачи" title="Кокосы удачи">
+            <span class="mini-btn-svg" data-svg="ico-coconuts"></span>
+            <span id="crabDiscountBadge" class="mini-discount-badge hidden">-50%</span>
+          </button>
+        </div>
+        <div id="feverBarWrap" class="fever-bar-wrap" title="Кликай быстро для x2!">
+          <div class="fever-bar-track">
+            <div id="feverBarFill" class="fever-bar-fill"></div>
+            <div class="fever-bar-gloss"></div>
+            <div class="fever-bar-content">
+              <span class="fever-flame">🔥</span>
+              <span id="feverValue" class="fever-value">0%</span>
+            </div>
+          </div>
+        </div>
+        <div class="fever-right-stack">
+          <button id="collectionsBtn" class="stage-mini-btn collections-mini-btn" type="button" aria-label="Коллекции" title="Коллекции">
+            <span class="mini-btn-svg" data-svg="ico-collections"></span>
+            <span id="collectionsBtnBadge" class="menu-alert-badge hidden">!</span>
+          </button>
+          <button id="guideBtn" class="stage-mini-btn guide-mini-btn" type="button" aria-label="Путеводитель" title="Путеводитель по игре">
+            <span class="mini-btn-svg" data-svg="ico-guide"></span>
+          </button>
+          <button id="diamondShopBtn" class="diamond-shop-btn" type="button" aria-label="Магазин времени" title="Магазин времени" data-svg="ico-dshop"></button>
+        </div>
+      </div>
+    </main>
+
+    <div class="premium-bar-wrap">
+      <button id="premiumMenuBtn" class="premium-compact-btn" type="button">
+        <span class="premium-compact-icon" aria-hidden="true" data-svg="ico-tab-premium"></span>
+        <span class="premium-compact-label">Gold VIP</span>
+        <span id="premiumBtnBadge" class="premium-compact-badge">VIP</span>
+      </button>
+      <button id="platinumMenuBtn" class="premium-compact-btn platinum-compact-btn" type="button">
+        <span class="premium-compact-icon" aria-hidden="true" data-svg="ico-tab-platinum"></span>
+        <span class="premium-compact-label">Platinum VIP</span>
+        <span id="platinumBtnBadge" class="premium-compact-badge">PLAT</span>
+      </button>
+    </div>
+
+    <section class="shop-panel">
+      <div class="shop-tabs">
+        <button id="tabBananas" class="tab-btn active" type="button">
+          <span class="tab-icon" aria-hidden="true" data-svg="ico-tab-bananas"></span>
+          <span>Бананы</span>
+          <span id="bananasProgressBadge" class="tab-count">0/99</span>
+        </button>
+
+        <button id="tabMonkeys" class="tab-btn" type="button">
+          <span class="tab-icon" aria-hidden="true" data-svg="ico-tab-monkeys"></span>
+          <span>Обезьяны</span>
+          <span id="monkeysProgressBadge" class="tab-count">1/30</span>
+        </button>
+      </div>
+      <div id="bananaControls" class="shop-subbar">
+        <span class="subbar-label">Купить:</span>
+        <div class="buy-multi-group">
+          <button id="buyX1Btn" class="multi-btn active" type="button">x1</button>
+          <button id="buyX10Btn" class="multi-btn" type="button">x10</button>
+          <button id="buyX25Btn" class="multi-btn" type="button">x25</button>
+          <button id="buyX50Btn" class="multi-btn" type="button">x50</button>
+          <button id="buyMaxBtn" class="multi-btn" type="button">MAX</button>
+        </div>
+      </div>
+      <div id="monkeyControls" class="shop-subbar hidden">
+        <span class="subbar-label">Усиление клика (30 обезьян)</span><span class="subbar-tip">Открывай и выбирай</span>
+      </div>
+      <div id="bananasList" class="shop-list"></div>
+      <div id="monkeysList" class="shop-list hidden"></div>
+      <button id="shopJumpBtn" class="shop-jump-btn hidden" type="button" title="Перейти к новым бананам">⬇ К #1</button>
+    </section>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <div id="customModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="customModalTitle">
+    <div class="modal-card">
+      <div class="modal-header"><h2 id="customModalTitle">🎨 Кастомизация</h2><button id="closeCustomBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button></div>
+      <div class="custom-live-preview">
+        <div id="customPreviewCard" class="preview-profile-card">
+          <div id="customPreviewFrame" class="avatar-frame-wrap large">
+            <div class="avatar-frame-ring"></div><div id="customPreviewAvatar" class="avatar-circle"></div><div class="avatar-frame-deco"></div>
+          </div>
+          <div class="preview-text-col">
+            <div id="customPreviewNick" class="preview-nick nick-styled">BananaPro</div>
+            <div id="customPreviewFrameName" class="preview-sub">Рамка: Золотая классика</div>
+            <div id="customPreviewStyleName" class="preview-sub">Стиль: Тропические джунгли</div>
+            <div id="customPreviewBgName" class="preview-sub">Фон: Банановый дождь</div>
+            <div id="customPreviewSkinName" class="preview-sub">Скин: Стандарт</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-tabs four-cols">
+        <button id="customTabFrames" class="modal-tab-btn active" type="button">🖼️ Рамки <span id="customFramesCount" class="tab-count">1/50</span></button>
+        <button id="customTabStyles" class="modal-tab-btn" type="button">✨ Стиль <span id="customStylesCount" class="tab-count">1/50</span></button>
+        <button id="customTabBgs" class="modal-tab-btn" type="button">🌌 Фоны <span id="customBgsCount" class="tab-count">1/25</span></button>
+        <button id="customTabSkins" class="modal-tab-btn" type="button">🎭 Скины <span id="customSkinsCount" class="tab-count">0/90</span></button>
+      </div>
+      <div class="modal-body">
+        <div id="framesGrid" class="custom-grid"></div>
+        <div id="stylesGrid" class="styles-list hidden"></div>
+        <div id="backgroundsGrid" class="custom-grid hidden"></div>
+        <div id="skinsPane" class="skins-pane hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="questsModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="questsModalTitle">
+    <div class="modal-card">
+      <div class="modal-header"><h2 id="questsModalTitle">📋 Задания</h2><button id="closeQuestsBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button></div>
+      <div class="modal-tabs">
+        <button id="questTabDaily" class="modal-tab-btn active" type="button">Ежедневные <span id="dailyTabBadge" class="tab-count">0/3</span></button>
+        <button id="questTabWeekly" class="modal-tab-btn" type="button">Еженедельные <span id="weeklyTabBadge" class="tab-count">0/3</span></button>
+      </div>
+      <div class="modal-body">
+        <div id="dailyQuestsPane" class="quests-pane">
+          <div class="quest-timer-bar"><span>Обновление каждые 24 часа</span><span class="quest-timer-pill">⏳ <strong id="questTimerDisplay">24:00:00</strong></span></div>
+          <div id="questsList" class="quests-list-stack"></div>
+        </div>
+        <div id="weeklyQuestsPane" class="quests-pane hidden">
+          <div class="quest-timer-bar"><span>Обновление каждые 168 часов</span><span class="quest-timer-pill">⏳ <strong id="weeklyTimerDisplay">168:00:00</strong></span></div>
+          <div id="weeklyQuestsList" class="quests-list-stack"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="achievementsModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="achModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="achModalTitle">🏆 Достижения <span id="achModalCount" class="tab-count">0/0</span></h2>
+        <button id="closeAchievementsBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-tabs three-cols">
+        <button id="achTabAll" class="modal-tab-btn active" type="button">Все (0)</button>
+        <button id="achTabUnlocked" class="modal-tab-btn" type="button">Открытые (0)</button>
+        <button id="achTabLocked" class="modal-tab-btn" type="button">Закрытые (0)</button>
+      </div>
+      <div class="modal-body">
+        <div id="achievementsList" class="ach-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="collectionsModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="collectionsModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="collectionsModalTitle">🎒 Коллекции <span id="collectionsTotalBadge" class="tab-count">0/240</span></h2>
+        <button id="closeCollectionsBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="col-summary-bar">
+        <span>Предметов в сумке: <strong id="collectionsItemsStat">0</strong></span>
+        <span class="col-turnin-pill">Сдано коллекций: <strong id="collectionsTurnInsStat">0</strong></span>
+      </div>
+      <div class="modal-tabs four-cols">
+        <button id="colTabAll" class="modal-tab-btn active" type="button">Все</button>
+        <button id="colTabCommon" class="modal-tab-btn" type="button">Обычные</button>
+        <button id="colTabRare" class="modal-tab-btn" type="button">Редкие</button>
+        <button id="colTabUnique" class="modal-tab-btn" type="button">Уникальные</button>
+      </div>
+      <div class="modal-body">
+        <div id="collectionsList" class="col-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dailyBonusModal" class="modal-overlay center-modal hidden" role="dialog" aria-modal="true" aria-labelledby="dailyBonusTitle">
+    <div class="modal-card center-card">
+      <div class="modal-header">
+        <h2 id="dailyBonusTitle">📅 Ежедневный вход</h2>
+        <button id="closeDailyBonusBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="dailyStreakHint" class="daily-streak-hint">Заходи каждый день подряд, чтобы забрать все награды!</div>
+        <div id="dailyDaysGrid" class="daily-days-grid"></div>
+        <button id="dailyClaimBtn" class="minigame-action-btn ready" type="button">🎁 Забрать награду!</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div id="profileModalCard" class="modal-card">
+      <div class="modal-header">
+        <h2 id="modalTitle">Профиль и статистика <span id="profileModalVipBadge" class="vip-pill-badge hidden">👑 VIP</span></h2>
+        <button id="closeProfileBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="profile-editor">
+          <div class="avatar-upload-box">
+            <div id="modalAvatarFrame" class="avatar-frame-wrap large">
+              <div class="avatar-frame-ring"></div><div id="modalAvatarPreview" class="avatar-circle"></div><div class="avatar-frame-deco"></div>
+            </div>
+            <label class="upload-btn">📷 Загрузить фото<input id="avatarFileInput" type="file" accept="image/*" hidden /></label>
+          </div>
+          <div class="preset-avatars-wrap"><span class="field-label">Или выбери обезьянку:</span><div id="avatarPresets" class="preset-avatars"></div></div>
+          <div class="nickname-wrap">
+            <label class="field-label" for="nicknameInput">Никнейм (только Англ):</label>
+            <div class="nickname-row">
+              <input id="nicknameInput" type="text" maxlength="18" placeholder="English nick (A-Z)..." />
+              <button id="saveNicknameBtn" class="save-btn" type="button">ОК</button>
+            </div>
+            <div class="nick-preview-bar">
+              <span>Предпросмотр:</span>
+              <span id="profileNickPreview" class="nick-preview-val nick-styled">BananaPro</span>
+            </div>
+            <span class="field-label" style="margin-top:10px;">Цвет и эффект ника:</span>
+            <div id="nickStylesGrid" class="nick-styles-grid"></div>
+          </div>
+        </div>
+        <h3 class="section-heading">Статистика</h3>
+        <div class="stats-grid">
+          <div class="stat-box"><span class="stat-label">Уровень аккаунта</span><strong id="statAccountLevel" class="stat-value">⭐ 0</strong></div>
+          <div class="stat-box"><span class="stat-label">Бонус уровня</span><strong id="statLevelMult" class="stat-value">×1</strong></div>
+          <div class="stat-box"><span class="stat-label">Всего кликов</span><strong id="statClicks" class="stat-value">0</strong></div>
+          <div class="stat-box"><span class="stat-label">Всего заработано</span><strong id="statTotalEarned" class="stat-value">0 🍌</strong></div>
+          <div class="stat-box"><span class="stat-label">Алмазы</span><strong id="statDiamonds" class="stat-value">0 💎</strong></div>
+          <div class="stat-box"><span class="stat-label">Выполнено заданий</span><strong id="statQuestsCompleted" class="stat-value">0</strong></div>
+          <div class="stat-box"><span class="stat-label">Бананов за клик</span><strong id="statBpc" class="stat-value">0.5</strong></div>
+          <div class="stat-box"><span class="stat-label">Бананов в секунду</span><strong id="statBps" class="stat-value">0</strong></div>
+          <div class="stat-box"><span class="stat-label">Открыто обезьян</span><strong id="statMonkeys" class="stat-value">1 / 30</strong></div>
+          <div class="stat-box"><span class="stat-label">Видов бананов</span><strong id="statBananas" class="stat-value">0 / 99</strong></div>
+          <div class="stat-box wide"><span class="stat-label">Время в игре</span><strong id="statTime" class="stat-value">00:00:00</strong></div>
+        </div>
+        <h3 class="section-heading">Перенос сохранения</h3>
+        <div class="backup-box">
+          <div class="backup-actions">
+            <button id="exportSaveBtn" class="backup-btn" type="button">📤 Экспорт кода</button>
+            <button id="importSaveBtn" class="backup-btn secondary" type="button">📥 Вставить код</button>
+          </div>
+          <div id="backupCodeWrap" class="backup-code-wrap hidden">
+            <input id="backupCodeInput" type="text" placeholder="Вставь код BM1:..." />
+            <button id="applyImportBtn" class="save-btn hidden" type="button">ОК</button>
+          </div>
+        </div>
+        <button id="resetGameBtn" class="danger-btn" type="button">⭐ Сбросить прогресс (+1 Ур.)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="guideModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="guideModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="guideModalTitle">📖 Путеводитель</h2>
+        <button id="closeGuideBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-tabs three-cols">
+        <button id="guideTabBasics" class="modal-tab-btn active" type="button">🍌 Основы</button>
+        <button id="guideTabGames" class="modal-tab-btn" type="button">🎮 Игры</button>
+        <button id="guideTabShop" class="modal-tab-btn" type="button">👑 Прокачка</button>
+      </div>
+      <div class="modal-body">
+        <div id="guidePaneBasics" class="guide-pane">
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">👆</span><strong>Клики и Обезьяны</strong></div>
+            <p class="guide-text">Нажимай на обезьяну в центре, чтобы зарабатывать <strong>бананы 🍌</strong>. Каждая новая открытая обезьяна во вкладке <strong>«Обезьяны»</strong> навсегда прибавляет свою силу к клику (суммируются все открытые обезьяны!) + к клику добавляется <strong>2% от добычи в секунду</strong>.</p>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">🍌</span><strong>Сорта бананов и бонус ×1.5</strong></div>
+            <p class="guide-text">Вкладка <strong>«Бананы»</strong> даёт пассивный доход каждую секунду (99 видов). За каждые <strong>25 купленных штук</strong> одного сорта его добыча умножается на <strong>×1.5</strong> (25, 50, 75 и т.д.). Каждые 100 штук меняют рамку банана (Бронза → Серебро → Золото → Платина → Алмаз).</p>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">⭐</span><strong>Уровень аккаунта и Сброс</strong></div>
+            <p class="guide-text">Купив последний сорт <strong>#99 Банан Абсолюта</strong> (1 шт для 1-го сброса, затем 4, 7, 10, 14 и ~+3.3 за каждый уровень), ты можешь сбросить прогресс и получить <strong>+1 уровень</strong>. Каждый уровень навсегда даёт <strong>×1.5 к доходу за клик и в секунду</strong>!</p>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">🔥</span><strong>Банановая лихорадка</strong></div>
+            <p class="guide-text">Кликай быстро, чтобы заполнить шкалу огня под обезьяной до <strong>100%</strong>. На <strong>10 секунд</strong> включается режим Лихорадки: <strong>×2 к клику</strong> и <strong>×1.5 к доходу в секунду</strong>! Если сделать паузу, шкала быстро остывает.</p>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">💎</span><strong>Алмазы и Золотой банан</strong></div>
+            <p class="guide-text">Алмазы добываются в <strong>Заданиях</strong>, <strong>Достижениях</strong>, <strong>Коллекциях</strong>, <strong>Колесе</strong>, <strong>Кокосах</strong> и <strong>Ежедневном входе</strong>. Иногда по экрану пролетает <strong>Золотой банан</strong> — лови его ради 💎, бустов ×3 или предмета коллекции!</p>
+          </div>
+        </div>
+
+        <div id="guidePaneGames" class="guide-pane hidden">
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">🎒</span><strong>Коллекции (над Путеводителем)</strong></div>
+            <p class="guide-text"><strong>30 коллекций</strong> по 8 предметов: <strong>Обычные</strong> (серые, 25 💎), <strong>Редкие</strong> (серебряные, 50 💎) и <strong>Уникальные</strong> (золотые, 100 💎). Предметы выпадают за клики с шансом <strong>0.60%</strong> / <strong>0.40%</strong> / <strong>0.25%</strong> и могут повторяться — каждую коллекцию можно сдавать многократно!</p>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">🎡</span><strong>Колесо фортуны (слева в центре)</strong></div>
+            <p class="guide-text">Бесплатный спин доступен раз в <strong>12 часов</strong> (с Gold VIP — <strong>2 спина</strong>, с Platinum VIP — <strong>3 спина</strong> каждые 12 ч). Можно выиграть: <strong>10–250 💎</strong>, прыжок во времени на <strong>10 или 30 минут</strong>, либо <strong>Лихорадку на 60 сек</strong>!</p>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">🥥</span><strong>Кокосы удачи (слева снизу)</strong></div>
+            <p class="guide-text">Риск-игра за <strong>75 💎</strong> (с Gold VIP — 1 скидка <strong>-50%</strong> раз в 12ч, с Platinum VIP — <strong>2 скидки -50%</strong> раз в 12ч). Под 9 кокосами спрятаны <strong>8 наград в 💎</strong> и <strong>1 злой краб 🦀</strong>. Макс. выигрыш: <strong>250 💎</strong>.</p>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">📋</span><strong>Задания и 🏆 Достижения</strong></div>
+            <p class="guide-text"><strong>Ежедневные задания</strong> обновляются каждые 24 часа, <strong>еженедельные</strong> — каждые 168 часов (приносят до 250 💎). В <strong>Достижениях</strong> 106 карточек: до <strong>8 звёзд</strong> в карточке с растущими наградами в алмазах.</p>
+          </div>
+        </div>
+
+        <div id="guidePaneShop" class="guide-pane hidden">
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">🏪</span><strong>Магазин времени (справа снизу)</strong></div>
+            <p class="guide-text">Позволяет за алмазы мгновенно получить пассивный доход за <strong>1, 2, 5, 12 или 24 часа</strong> (чем больше твой доход/сек, тем выгоднее!). Там же продаются улучшения <strong>офлайн-лимита</strong>: с 2 ч до 4, 8 и 12 часов.</p>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">👑</span><strong>Gold VIP</strong></div>
+            <p class="guide-text">Даёт: <strong>×2 к клику</strong>, <strong>×2 к добыче/сек</strong>, <strong>+8 ч к офлайну</strong>, <strong>2 спина Колеса</strong> / 12ч, <strong>1 скидку -50% на Кокосы</strong> / 12ч и золотой VIP-бейдж.</p>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">💠</span><strong>Platinum VIP</strong></div>
+            <p class="guide-text">Усиленный статус (заменяет Gold на время действия): <strong>×4 к клику</strong>, <strong>×4 к добыче/сек</strong>, <strong>+12 ч к офлайну</strong>, <strong>3 спина Колеса</strong> / 12ч, <strong>2 скидки -50% на Кокосы</strong> / 12ч и платиновый статус.</p>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-head"><span class="guide-ico">🎨</span><strong>Кастомизация, Профиль и ⚙️ Настройки</strong></div>
+            <p class="guide-text">Открывай рамки, стили карточки, анимированные фоны и <strong>скины для обезьянок</strong>, выбирай цвет ника, ставь фото на аватар, переноси прогресс кодом <strong>BM1:...</strong> и управляй звуком, вибрацией и анимациями в <strong>Настройках</strong>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="premiumModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="premiumModalTitle">
+    <div class="modal-card is-vip">
+      <div class="modal-header">
+        <h2 id="premiumModalTitle">👑 Gold Премиум <span class="dshop-header-bal"><span class="inline-diamond" data-svg="ico-diamond" data-svg-class="diamond-svg"></span> <span id="premiumShopBalance">0</span></span></h2>
+        <button id="closePremiumBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="premiumList" class="dshop-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="platinumModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="platinumModalTitle">
+    <div class="modal-card is-plat">
+      <div class="modal-header">
+        <h2 id="platinumModalTitle">💠 Platinum Премиум <span class="dshop-header-bal"><span class="inline-diamond" data-svg="ico-diamond" data-svg-class="diamond-svg"></span> <span id="platinumShopBalance">0</span></span></h2>
+        <button id="closePlatinumBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="platinumList" class="dshop-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="diamondShopModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="diamondShopTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="diamondShopTitle">🏪 Магазин времени <span class="dshop-header-bal"><span class="inline-diamond" data-svg="ico-diamond" data-svg-class="diamond-svg"></span> <span id="diamondShopBalance">0</span></span></h2>
+        <button id="closeDiamondShopBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="dshop-hint">Мгновенно получи бананы, как будто прошло несколько часов пассивного дохода!</div>
+        <div id="diamondShopList" class="dshop-list"></div>
+        <div class="dshop-section-head">
+          <span>⏳ Улучшения офлайн-лимита</span>
+          <span id="offlineLimitBadge" class="dshop-limit-badge">Сейчас: 2 ч</span>
+        </div>
+        <div id="offlineUpgradesList" class="dshop-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="wheelModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="wheelModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="wheelModalTitle">🎡 Колесо фортуны</h2>
+        <button id="closeWheelBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body wheel-modal-body">
+        <div class="wheel-timer-pill" id="wheelTimerDisplay">Готово! Можно крутить</div>
+        <div class="wheel-stage">
+          <div class="wheel-pointer" aria-hidden="true">▼</div>
+          <div id="wheelSpinner" class="wheel-spinner"></div>
+        </div>
+        <div id="wheelResultBox" class="wheel-result-box hidden">
+          <span id="wheelResultText"></span>
+        </div>
+        <button id="wheelSpinBtn" class="minigame-action-btn ready" type="button">🎡 КРУТИТЬ КОЛЕСО!</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="coconutsModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="coconutsModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="coconutsModalTitle">🥥 Кокосы удачи <span class="dshop-header-bal"><span class="inline-diamond" data-svg="ico-diamond" data-svg-class="diamond-svg"></span> <span id="coconutsDiamondBalance">0</span></span></h2>
+        <button id="closeCoconutsBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="coconuts-top-bar">
+          <div class="coconuts-bank-pill">В банке: <strong><span class="inline-diamond" data-svg="ico-diamond" data-svg-class="diamond-svg"></span> <span id="coconutsBankValue">0</span></strong> / 250</div>
+          <div id="coconutsStatusText" class="coconuts-status">8 кокосов с 💎 и 1 злой краб 🦀. Макс. выигрыш — 250 💎!</div>
+        </div>
+        <div id="coconutsGrid" class="coconuts-grid"></div>
+        <button id="coconutsActionBtn" class="minigame-action-btn ready" type="button">🥥 Играть (75 💎)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="levelModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="levelModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="levelModalTitle">⭐ Уровень аккаунта</h2>
+        <button id="closeLevelBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="level-hero-card">
+          <div class="level-hero-top">
+            <div class="level-hero-emblem" data-svg="ico-level"></div>
+            <div class="level-hero-info">
+              <div class="level-hero-title">Уровень <strong id="levelCurrentNum">0</strong></div>
+              <div class="level-hero-sub">Текущий бонус дохода: <strong id="levelCurrentMult">×1</strong> к клику и в сек</div>
+            </div>
+          </div>
+          <div class="level-compare-row">
+            <div class="level-compare-box">
+              <span>Сейчас</span>
+              <strong id="levelNowBox">Ур. 0 (×1)</strong>
+            </div>
+            <div class="level-compare-arrow">→</div>
+            <div class="level-compare-box next">
+              <span>После сброса</span>
+              <strong id="levelNextBox">Ур. 1 (×1.5)</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="level-req-card">
+          <div class="level-req-head">
+            <span>Требование для сброса</span>
+            <strong id="levelReqCount">0 / 1</strong>
+          </div>
+          <div class="level-req-desc">Купите <strong>#99 Банан Абсолюта</strong> в нужном количестве:</div>
+          <div class="level-prog-track">
+            <div id="levelProgFill" class="level-prog-fill"></div>
+          </div>
+          <div id="levelReqHint" class="level-req-hint">Каждый сброс даёт +1 уровень и ×1.5 ко всему доходу!</div>
+        </div>
+
+        <div class="level-rules-card">
+          <div class="level-rule-row keep">✓ Сохраняются: <strong>Уровень, алмазы, VIP, кастомизация, коллекции, достижения и задания</strong></div>
+          <div class="level-rule-row reset">↻ Сбрасываются: <strong>Бананы, купленные сорта бананов и обезьяны</strong></div>
+        </div>
+
+        <button id="levelResetBtn" class="minigame-action-btn disabled" type="button">🔒 Нужен Банан Абсолюта (0/1)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="resetConfirmModal" class="modal-overlay center-modal hidden" role="dialog" aria-modal="true" aria-labelledby="resetConfirmTitle">
+    <div class="modal-card center-card">
+      <div class="modal-header">
+        <h2 id="resetConfirmTitle">⭐ Сбросить прогресс (+1 Ур.)?</h2>
+        <button id="closeResetConfirmBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="resetConfirmText" class="confirm-text">Бананы, сорта бананов и обезьяны будут сброшены. Вы получите +1 уровень аккаунта и множитель дохода ×1.5!</p>
+        <div class="confirm-actions">
+          <button id="cancelResetBtn" class="confirm-cancel-btn" type="button">Отмена</button>
+          <button id="confirmResetBtn" class="confirm-danger-btn" type="button">Сбросить (+1 Ур.)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="skinConfirmModal" class="modal-overlay center-modal hidden" role="dialog" aria-modal="true" aria-labelledby="skinConfirmTitle">
+    <div class="modal-card center-card skin-confirm-card">
+      <div class="modal-header">
+        <h2 id="skinConfirmTitle">🎭 Покупка скина</h2>
+        <button id="closeSkinConfirmBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body skin-confirm-body">
+        <div id="skinConfirmPreview" class="skin-confirm-preview"></div>
+        <div id="skinConfirmName" class="skin-confirm-name">Обезьянка — Скин #1</div>
+        <p id="skinConfirmText" class="confirm-text">Вы уверены, что хотите приобрести этот скин?</p>
+        <div class="confirm-actions">
+          <button id="cancelSkinBuyBtn" class="confirm-cancel-btn" type="button">Отмена</button>
+          <button id="confirmSkinBuyBtn" class="confirm-danger-btn skin-confirm-buy-btn" type="button">Купить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="offlineModal" class="modal-overlay center-modal hidden" role="dialog" aria-modal="true" aria-labelledby="offlineModalTitle">
+    <div class="modal-card center-card offline-card">
+      <div class="offline-badge">⏱ ОФЛАЙН-ДОХОД</div>
+      <h2 id="offlineModalTitle" class="offline-title">С возвращением!</h2>
+      <p id="offlineTimeText" class="offline-sub">Обезьянки трудились, пока тебя не было:</p>
+      <div class="offline-reward-pill">+<span id="offlineEarnedValue">0</span> 🍌</div>
+      <button id="claimOfflineBtn" class="offline-claim-btn" type="button">Забрать урожай! 🍌</button>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal-overlay center-modal hidden" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+    <div class="modal-card center-card">
+      <div class="modal-header">
+        <h2 id="settingsModalTitle">⚙️ Настройки</h2>
+        <button id="closeSettingsBtn" class="close-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-list">
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-title">🔊 Звуки в игре</div>
+              <div class="setting-desc">Эффекты кликов, покупок и наград</div>
+            </div>
+            <button id="settingSoundToggle" class="setting-toggle-btn" type="button"></button>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-title">📳 Виброотклик</div>
+              <div class="setting-desc">Лёгкая вибрация на телефоне при кликах и наградах</div>
+            </div>
+            <button id="settingHapticToggle" class="setting-toggle-btn" type="button"></button>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-title">⚡ Отключить анимации</div>
+              <div class="setting-desc">Режим для слабого телефона (убирает лаги)</div>
+            </div>
+            <button id="settingLowPerfToggle" class="setting-toggle-btn" type="button"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data-game.js"></script>
+  <script src="js/data-custom.js"></script>
+  <script src="js/data-collections.js"></script>
+  <script src="js/svg-monkeys.js"></script>
+  <script src="js/svg-art.js"></script>
+  <script src="js/svg-collections.js"></script>
+  <script src="js/svg-ui.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/custom.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/quests.js"></script>
+  <script src="js/achievements.js"></script>
+  <script src="js/premium.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/fever.js"></script>
+  <script src="js/diamondShop.js"></script>
+  <script src="js/wheel.js"></script>
+  <script src="js/coconuts.js"></script>
+  <script src="js/collections.js"></script>
+  <script src="js/level.js"></script>
+  <script src="js/dailyLogin.js"></script>
+  <script src="js/goldenBanana.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/dev.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

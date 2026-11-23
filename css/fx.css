@@ -1,0 +1,709 @@
+/* ================= ЭФФЕКТЫ ФОНОВ ================= */
+.app-shell.bg-fx-aurora,
+.bg-swatch.bg-fx-aurora {
+  background-size: 220% 220% !important;
+  animation: bgAuroraMove 9s ease-in-out infinite;
+}
+.app-shell.bg-fx-wave,
+.bg-swatch.bg-fx-wave {
+  background-size: 185% 185% !important;
+  animation: bgWaveShift 7s ease-in-out infinite;
+}
+.app-shell.bg-fx-prism,
+.bg-swatch.bg-fx-prism {
+  background-size: 200% 200% !important;
+  animation: bgAuroraMove 6s linear infinite;
+}
+
+.app-shell.bg-fx-pulse::before,
+.bg-swatch.bg-fx-pulse::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle at 50% 35%, var(--swatch-glow, var(--app-bg-glow, rgba(255, 212, 59, 0.28))), transparent 62%);
+  animation: bgGlowBreathe 3.8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-shell.bg-fx-neon::before,
+.bg-swatch.bg-fx-neon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 26px 26px;
+  animation: bgGridScroll 6s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.bg-swatch.bg-fx-neon::before {
+  background-size: 16px 16px;
+}
+
+.app-shell.bg-fx-shimmer::before,
+.bg-swatch.bg-fx-shimmer::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -80%;
+  width: 60%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+  transform: rotate(25deg);
+  animation: bgShimmerSweep 5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-shell.bg-fx-twinkle::before,
+.bg-swatch.bg-fx-twinkle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.2), transparent 36%),
+    radial-gradient(circle at 78% 36%, rgba(255, 255, 255, 0.14), transparent 42%);
+  animation: bgGlowBreathe 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-shell.has-art-bg {
+  animation: none !important;
+}
+.app-shell.has-art-bg::before {
+  display: none !important;
+}
+
+/* Атмосферные световые сферы и звёзды на главном фоне */
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, var(--orb-c, rgba(255, 212, 59, 0.4)) 0%, transparent 70%);
+  opacity: 0.42;
+  will-change: transform, opacity;
+  animation: bgOrbFloat var(--orb-dur, 10s) ease-in-out infinite;
+}
+.bg-star {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 8px 1px rgba(255, 255, 255, 0.75);
+  pointer-events: none;
+  animation: bgStarTwinkle var(--star-dur, 3s) ease-in-out infinite;
+}
+
+/* ================= ИЛЛЮСТРАЦИИ ФОНОВ (img/backgrounds/) ================= */
+.bg-art-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.bg-art-layer.is-loaded {
+  opacity: 1;
+}
+.bg-art-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(6, 12, 8, 0.62) 0%, rgba(6, 12, 8, 0.32) 26%, rgba(6, 12, 8, 0.14) 55%, rgba(6, 12, 8, 0.45) 100%),
+    radial-gradient(circle at 50% 42%, transparent 30%, rgba(4, 10, 6, 0.42) 100%);
+  pointer-events: none;
+}
+.bg-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  display: block;
+  transform: scale(1.03);
+  animation: bgArtBreathe 14s ease-in-out infinite;
+  will-change: transform;
+}
+
+.bg-ambient-layer.has-art .bg-orb {
+  opacity: 0.2;
+}
+.bg-ambient-layer.has-art .bg-ambient-item {
+  opacity: 0.14;
+}
+
+/* Карточка-превью фона в Кастомизации */
+.bg-swatch {
+  height: 76px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -14px 22px rgba(0, 0, 0, 0.36),
+    0 4px 14px var(--swatch-glow, rgba(0, 0, 0, 0.35));
+}
+.custom-card.selected .bg-swatch {
+  border-color: var(--accent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -12px 18px rgba(0, 0, 0, 0.28),
+    0 0 16px var(--swatch-glow, rgba(255, 212, 59, 0.55));
+}
+.bg-swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 54% 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 12px 12px 24px 24px / 12px 12px 8px 8px;
+  pointer-events: none;
+  z-index: 3;
+}
+.bg-swatch-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 45%;
+  z-index: 1;
+  pointer-events: none;
+}
+.bg-swatch.has-art::before {
+  display: none;
+}
+.bg-swatch-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, var(--orb-c, rgba(255, 212, 59, 0.5)) 0%, transparent 72%);
+  opacity: 0.72;
+  z-index: 1;
+  animation: bgOrbFloat 6s ease-in-out infinite;
+}
+.bg-swatch-orb.o1 { width: 68px; height: 68px; top: -18px; left: -12px; }
+.bg-swatch-orb.o2 { width: 64px; height: 64px; bottom: -20px; right: -10px; animation-delay: -3s; }
+.bg-swatch-spark {
+  position: absolute;
+  font-size: 9px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.78);
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  z-index: 1;
+  animation: bgStarTwinkle 2.4s ease-in-out infinite;
+}
+.bg-swatch-spark.s1 { top: 8px; left: 12px; }
+.bg-swatch-spark.s2 { bottom: 9px; left: 26%; animation-delay: -0.9s; font-size: 7px; }
+.bg-swatch-spark.s3 { top: 10px; right: 13px; animation-delay: -1.6s; }
+.bg-swatch-drops {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+}
+.bg-swatch-drops span {
+  display: inline-block;
+  font-size: 21px;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.7));
+  animation: bgSwatchFloat 2.8s ease-in-out infinite;
+}
+.bg-swatch-drops span:nth-child(1) { transform: translateY(2px); font-size: 19px; }
+.bg-swatch-drops span:nth-child(2) { animation-delay: -0.9s; font-size: 25px; }
+.bg-swatch-drops span:nth-child(3) { animation-delay: -1.8s; transform: translateY(2px); font-size: 19px; }
+
+/* ================= ЭФФЕКТЫ СКИНОВ НА ГЛАВНОМ КРУЖОЧКЕ ================= */
+.monkey-button.skin-tier-1 {
+  border-color: #38bdf8;
+  --monkey-color: #38bdf8;
+}
+.monkey-button.skin-tier-1 .monkey-visual {
+  animation: skinCardFloat 2.4s ease-in-out infinite;
+}
+.monkey-button.skin-tier-2 {
+  border-color: #c084fc;
+  --monkey-color: #c084fc;
+}
+.monkey-button.skin-tier-2 .monkey-visual {
+  animation: skinCardDance 2.2s ease-in-out infinite;
+}
+.monkey-button.skin-tier-2 .monkey-orbit {
+  animation-duration: 6.5s;
+}
+.monkey-button.skin-tier-3 {
+  border-color: #fde047;
+  --monkey-color: #fde047;
+}
+.monkey-button.skin-tier-3 .monkey-visual {
+  animation: skinCardLegend 2s ease-in-out infinite;
+}
+.monkey-button.skin-tier-3 .monkey-orbit {
+  animation-duration: 4.8s;
+}
+.monkey-button.skin-tier-3 .monkey-rays {
+  animation-duration: 12s;
+}
+.monkey-button.skin-equip-pop .monkey-visual {
+  animation: skinEquipPop 0.52s cubic-bezier(0.22, 1.45, 0.36, 1) !important;
+}
+
+/* ================= ЭФФЕКТЫ РАМОК И СТИЛЕЙ ПРОФИЛЯ ================= */
+.avatar-frame-wrap.fx-pulse .avatar-frame-ring { animation: framePulse 1.8s ease-in-out infinite; }
+.avatar-frame-wrap.fx-double .avatar-frame-ring { box-shadow: 0 0 0 2px #0f1712 inset, 0 0 14px var(--f-glow, rgba(255, 255, 255, 0.4)); }
+.avatar-frame-wrap.fx-neon .avatar-frame-ring { box-shadow: 0 0 8px var(--f-c1, #22d3ee), 0 0 18px var(--f-c2, #ec4899); animation: framePulse 1.5s ease-in-out infinite; }
+.avatar-frame-wrap.fx-prism .avatar-frame-ring { animation: spinSlow 3s linear infinite, framePulse 2s ease-in-out infinite; }
+
+.avatar-frame-wrap.fx-pulse .avatar-frame-deco {
+  animation: frameDecoBreathe 2.3s ease-in-out infinite;
+}
+.avatar-frame-wrap.fx-neon .avatar-frame-deco {
+  filter: drop-shadow(0 0 6px var(--f-c1, #22d3ee)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.6));
+  animation: frameDecoBreathe 1.8s ease-in-out infinite;
+}
+.avatar-frame-wrap.fx-prism .avatar-frame-deco {
+  filter: drop-shadow(0 0 8px var(--f-glow, #ffd43b)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.65));
+  animation: frameDecoBreathe 2s ease-in-out infinite;
+}
+
+/* Объёмный дизайн карточек стилей и превью профиля */
+.style-card,
+.preview-profile-card {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.34),
+    0 4px 14px var(--p-glow, rgba(0, 0, 0, 0.32));
+}
+.style-card:not(.pstyle-fx-stars)::before,
+.preview-profile-card:not(.pstyle-fx-stars)::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 52% 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.style-card.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -8px 16px rgba(0, 0, 0, 0.25),
+    0 0 18px var(--p-glow, rgba(255, 212, 59, 0.48));
+}
+.style-tier-num {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.style-select-pill {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 6px rgba(0, 0, 0, 0.28);
+}
+.style-card.selected .style-select-pill {
+  border-color: #fffbeb;
+  box-shadow: 0 0 10px rgba(255, 212, 59, 0.45);
+}
+
+.pstyle-fx-shimmer::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: -60%;
+  width: 45%;
+  height: 180%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: rotate(24deg);
+  animation: pShimmer 3.4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+.pstyle-fx-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 82% 50%, var(--p-glow, rgba(255, 212, 59, 0.45)), transparent 68%);
+  pointer-events: none;
+  z-index: 0;
+  animation: pGlowPulse 2.4s ease-in-out infinite;
+  will-change: opacity;
+}
+.pstyle-fx-rainbow { background-size: 220% 220% !important; animation: pRainbowShift 5s linear infinite; }
+.pstyle-fx-stars::before {
+  content: "✦ ✧ ✦";
+  position: absolute;
+  right: 12px;
+  top: 6px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.78);
+  text-shadow: 0 0 8px var(--p-accent, #ffffff);
+  pointer-events: none;
+  z-index: 1;
+  animation: twinkle 2s ease-in-out infinite;
+}
+.profile-trigger.pstyle-fx-stars::before { right: 10px; top: auto; bottom: 4px; font-size: 9px; letter-spacing: 1.5px; opacity: 0.72; }
+.style-card.pstyle-fx-stars::before { right: 114px; top: 7px; font-size: 11px; }
+.preview-profile-card.pstyle-fx-stars::before { right: 14px; top: 10px; font-size: 13px; }
+
+/* ================= СТИЛИ И ЭФФЕКТЫ НИКНЕЙМА ================= */
+.nick-styled {
+  font-family: "Fredoka", "Rubik", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  background: var(--nick-bg, linear-gradient(180deg, #ffffff, #e2e8f0));
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none !important;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 8px var(--nick-glow, transparent));
+}
+.nick-styled.nick-fx-flow { animation: nickFlow 3.2s linear infinite; }
+.nick-styled.nick-fx-fire { animation: nickFlow 1.7s linear infinite, nickFireGlow 1.05s ease-in-out infinite; }
+.nick-styled.nick-fx-pulse { animation: nickFlow 2.8s linear infinite, nickNeonPulse 1.6s ease-in-out infinite; }
+
+/* ================= АНИМАЦИЯ SVG-ОБЕЗЬЯНОК И ИСКР ================= */
+.monkey-body-group { transform-box: fill-box; transform-origin: center bottom; animation: monkeyBreathe 2.6s ease-in-out infinite; }
+.monkey-tail { transform-box: fill-box; transform-origin: 10% 80%; animation: tailWag 2.1s ease-in-out infinite; }
+.monkey-arm-left,
+.monkey-arm-right { transform-box: fill-box; transform-origin: 50% 15%; transition: transform 0.08s ease-out; }
+.monkey-arm-left-idle { transform-box: fill-box; transform-origin: 85% 15%; animation: armLeftSwing 2.4s ease-in-out infinite; }
+.monkey-arm-right-idle { transform-box: fill-box; transform-origin: 15% 50%; animation: armRightSwing 2.4s ease-in-out infinite; }
+.monkey-eyes { transform-box: fill-box; transform-origin: center; animation: monkeyBlink 4.4s ease-in-out infinite; }
+.monkey-head { transform-box: fill-box; transform-origin: 50% 85%; transition: transform 0.08s ease-out; }
+.monkey-head-bob { transform-box: fill-box; transform-origin: 50% 85%; animation: monkeyHeadBob 3.2s ease-in-out infinite; }
+.monkey-ear-left { transform-box: fill-box; transform-origin: 85% 50%; animation: earWiggleL 3.6s ease-in-out infinite; }
+.monkey-ear-right { transform-box: fill-box; transform-origin: 15% 50%; animation: earWiggleR 3.6s ease-in-out infinite; }
+.monkey-brows { transition: transform 0.08s ease-out; }
+.monkey-eyes-happy,
+.monkey-mouth-happy { opacity: 0; }
+
+.monkey-button.tapped .monkey-head { transform: translateY(-3px) rotate(-4deg) scale(1.04); }
+.monkey-button.tapped .monkey-brows { transform: translateY(-2.5px); }
+.monkey-button.tapped .monkey-eyes,
+.monkey-button.tapped .monkey-mouth-idle { opacity: 0; }
+.monkey-button.tapped .monkey-eyes-happy,
+.monkey-button.tapped .monkey-mouth-happy { opacity: 1; }
+.monkey-button.tapped .monkey-arm-right { transform: rotate(-16deg) translateY(-3px); }
+.monkey-button.tapped .monkey-arm-left { transform: rotate(12deg) translateY(-2px); }
+
+.svg-sparkle { transform-box: fill-box; transform-origin: center; animation: twinkle 1.8s ease-in-out infinite; }
+.monkey-prop { transform-box: fill-box; transform-origin: 20% 85%; animation: propSway 2.2s ease-in-out infinite; }
+.fx-ribbon { transform-box: fill-box; transform-origin: 0% 50%; animation: ribbonFlutter 1.5s ease-in-out infinite; }
+.fx-spin-prop { transform-box: fill-box; transform-origin: center; animation: spinSlow 2.8s linear infinite; }
+.fx-flame-crown { transform-box: fill-box; transform-origin: 50% 90%; animation: flameFlicker 0.85s ease-in-out infinite; }
+.fx-float-prop { transform-box: fill-box; transform-origin: center; animation: floatPropBob 2.2s ease-in-out infinite; }
+.fx-pulse-glow { animation: auraPulse 1.4s ease-in-out infinite; }
+.fx-wing-l { transform-box: fill-box; transform-origin: 95% 50%; animation: wingFlapL 2s ease-in-out infinite; }
+.fx-wing-r { transform-box: fill-box; transform-origin: 5% 50%; animation: wingFlapR 2s ease-in-out infinite; }
+
+/* ================= KEYFRAMES ================= */
+@keyframes bgArtBreathe {
+  0%, 100% { transform: scale(1.03) translate3d(0, 0, 0); }
+  50% { transform: scale(1.07) translate3d(0, -6px, 0); }
+}
+@keyframes frameDecoBreathe {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.03); filter: brightness(1.14); }
+}
+@keyframes skinCardPopIn {
+  0% { opacity: 0; transform: scale(0.86) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes skinCardFloat {
+  0%, 100% { transform: translateY(0) scale(1) rotate(-2deg); }
+  50% { transform: translateY(-5px) scale(1.04) rotate(2deg); }
+}
+@keyframes skinCardDance {
+  0%, 100% { transform: translateY(0) rotate(-4deg) scale(1); }
+  25% { transform: translateY(-5px) rotate(3deg) scale(1.06, 0.96); }
+  50% { transform: translateY(-1px) rotate(4deg) scale(1.02); }
+  75% { transform: translateY(-6px) rotate(-3deg) scale(0.98, 1.05); }
+}
+@keyframes skinCardLegend {
+  0%, 100% { transform: translateY(0) scale(1) rotate(-3deg); filter: brightness(1); }
+  50% { transform: translateY(-6px) scale(1.07) rotate(3deg); filter: brightness(1.14); }
+}
+@keyframes skinEquipPop {
+  0% { transform: scale(0.35) rotate(-18deg); opacity: 0.2; filter: brightness(1.8); }
+  55% { transform: scale(1.18) rotate(6deg); opacity: 1; filter: brightness(1.28); }
+  80% { transform: scale(0.95) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+}
+@keyframes achStarPop { 0% { transform: scale(0.5); } 55% { transform: scale(1.45); } 100% { transform: scale(1); } }
+@keyframes titleBounce { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-4px) scale(1.03); } }
+@keyframes palmSwayL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(4deg); } }
+@keyframes palmSwayR { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-4deg); } }
+@keyframes loadingStripes { 0% { background-position: 0 0, 0 0; } 100% { background-position: 24px 0, 0 0; } }
+@keyframes feverFireFlow {
+  0% {
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+    transform: translateY(1px) scaleY(0.96);
+  }
+  33% {
+    background-position: 20px -3px, 20px -2px, 20px -4px, -18px -2px, 21px -1px, -15px -2px, 13px 0;
+    transform: translateY(-1px) scaleY(1.06);
+  }
+  66% {
+    background-position: 40px 1px, 40px -1px, 40px 1px, -36px 1px, 43px -2px, -31px 1px, 27px 0;
+    transform: translateY(0px) scaleY(1.02);
+  }
+  100% {
+    background-position: 60px 0, 60px 0, 60px 0, -54px 0, 64px 0, -46px 0, 40px 0;
+    transform: translateY(1px) scaleY(0.96);
+  }
+}
+@keyframes feverTipFlicker {
+  0%, 100% { opacity: 0.78; transform: scale(0.92, 0.96); }
+  50% { opacity: 1; transform: scale(1.15, 1.06); }
+}
+@keyframes startBtnAppear { from { opacity: 0; transform: scale(0.8) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes startBtnPulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.08); } }
+@keyframes bgAuroraMove { 0%, 100% { background-position: 0% 20%; } 50% { background-position: 100% 80%; } }
+@keyframes bgWaveShift { 0%, 100% { background-position: 50% 0%; } 50% { background-position: 50% 100%; } }
+@keyframes bgGlowBreathe { 0%, 100% { opacity: 0.45; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.06); } }
+@keyframes bgGridScroll { 0% { transform: translateY(0); } 100% { transform: translateY(28px); } }
+@keyframes bgShimmerSweep { 0% { left: -80%; } 50%, 100% { left: 150%; } }
+@keyframes bgOrbFloat {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.4; }
+  50% { transform: translate3d(14px, -16px, 0) scale(1.16); opacity: 0.72; }
+}
+@keyframes bgStarTwinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.75); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+@keyframes bgSwatchFloat {
+  0%, 100% { transform: translateY(2px) scale(1); }
+  50% { transform: translateY(-4px) scale(1.08); }
+}
+@keyframes bgAmbientFall {
+  0% { transform: translateY(-10vh) translateX(0) rotate(0); opacity: 0; }
+  15% { opacity: 0.28; }
+  50% { transform: translateY(48vh) translateX(14px) rotate(110deg); opacity: 0.26; }
+  85% { opacity: 0.22; }
+  100% { transform: translateY(105vh) translateX(-10px) rotate(220deg); opacity: 0; }
+}
+@keyframes bgClickDrop {
+  0% { transform: translate3d(0, 0, 0) rotate(0) scale(0.6); opacity: 0; }
+  12% { opacity: 0.95; transform: translate3d(calc(var(--drop-dx, 0px) * 0.2), 10vh, 0) rotate(calc(var(--drop-rot, 180deg) * 0.2)) scale(1.08); }
+  80% { opacity: 0.9; }
+  100% { transform: translate3d(var(--drop-dx, 0px), 78vh, 0) rotate(var(--drop-rot, 180deg)) scale(0.85); opacity: 0; }
+}
+@keyframes framePulse { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.25); } }
+@keyframes pShimmer { 0% { left: -60%; } 55%, 100% { left: 140%; } }
+@keyframes pGlowPulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+@keyframes pRainbowShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+@keyframes monkeyImgIdle { 0%, 100% { transform: translateY(0) scale(1, 1) rotate(-2deg); } 50% { transform: translateY(-7px) scale(1.04, 0.96) rotate(2.5deg); } }
+@keyframes idleLook {
+  0%, 100% { transform: perspective(360px) rotateY(0deg) rotateZ(0deg); }
+  25% { transform: perspective(360px) rotateY(-19deg) rotateZ(-4deg) scale(1.03); }
+  70% { transform: perspective(360px) rotateY(19deg) rotateZ(4deg) scale(1.03); }
+}
+@keyframes idleHop {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  15% { transform: translateY(3px) scale(1.08, 0.9); }
+  38% { transform: translateY(-13px) scale(0.95, 1.07); }
+  56% { transform: translateY(2px) scale(1.07, 0.92); }
+  75% { transform: translateY(-7px) scale(0.98, 1.03); }
+  90% { transform: translateY(1px) scale(1.03, 0.97); }
+}
+@keyframes idleWiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  20% { transform: rotate(-7deg) scale(1.05, 0.96); }
+  45% { transform: rotate(7deg) scale(0.97, 1.04); }
+  70% { transform: rotate(-5deg) scale(1.04, 0.97); }
+  88% { transform: rotate(4deg) scale(1.02); }
+}
+@keyframes idleBreath {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  45% { transform: translateY(-4px) scale(1.07, 1.06); }
+  70% { transform: translateY(-2px) scale(1.04, 1.03); }
+}
+@keyframes emotionPop {
+  0% { opacity: 0; transform: translate(-50%, 6px) scale(0.4) rotate(-12deg); }
+  25% { opacity: 1; transform: translate(-50%, -14px) scale(1.2) rotate(8deg); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--ex, 0px)), -52px) scale(0.85) rotate(var(--er, 16deg)); }
+}
+@keyframes monkeyShopBob { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-2px) scale(1.03); } }
+@keyframes monkeyShopAlive { 0%, 100% { transform: translateY(0) scale(1) rotate(-2.5deg); } 50% { transform: translateY(-3px) scale(1.06) rotate(2.5deg); } }
+@keyframes monkeyBreathe { 0%, 100% { transform: scaleY(1) scaleX(1); } 50% { transform: scaleY(1.02) scaleX(0.99); } }
+@keyframes tailWag { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(10deg); } }
+@keyframes armLeftSwing { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(7deg); } }
+@keyframes armRightSwing { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-8deg); } }
+@keyframes monkeyBlink { 0%, 91%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.08); } }
+@keyframes monkeyHeadBob { 0%, 100% { transform: rotate(-1.5deg) translateY(0); } 50% { transform: rotate(2deg) translateY(-1.5px); } }
+@keyframes earWiggleL { 0%, 82%, 100% { transform: rotate(0deg); } 88% { transform: rotate(-9deg); } 94% { transform: rotate(4deg); } }
+@keyframes earWiggleR { 0%, 82%, 100% { transform: rotate(0deg); } 88% { transform: rotate(9deg); } 94% { transform: rotate(-4deg); } }
+@keyframes propSway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(5deg); } }
+@keyframes ribbonFlutter { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(5deg) scaleX(1.06); } }
+@keyframes flameFlicker { 0%, 100% { transform: scaleY(1) scaleX(1); } 50% { transform: scaleY(1.09) scaleX(0.95); } }
+@keyframes floatPropBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes wingFlapL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(10deg); } }
+@keyframes wingFlapR { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-10deg); } }
+@keyframes twinkle { 0%, 100% { opacity: 0.45; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.15); } }
+@keyframes auraPulse { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes spinSlow { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes spinReverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+@keyframes orbitTwinkle { 0%, 100% { transform: scale(0.75); opacity: 0.7; } 50% { transform: scale(1.3); opacity: 1; } }
+@keyframes rippleExpand { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(1.48); opacity: 0; } }
+@keyframes sparkBurst { 0% { transform: translate(0, 0) scale(1.1); opacity: 1; } 100% { transform: translate(var(--sx), var(--sy)) scale(0.2); opacity: 0; } }
+@keyframes feverWrapPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+@keyframes miniBtnFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5px); }
+}
+@keyframes wheelReadyBounce {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  45% { transform: translateY(-3px) scale(1.06) rotate(-3deg); }
+  65% { transform: translateY(-2px) scale(1.06) rotate(3deg); }
+}
+@keyframes cocoWobble {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-2px) rotate(-3deg); }
+  70% { transform: translateY(-1px) rotate(3deg); }
+}
+@keyframes readyRingPulse {
+  0% { transform: scale(0.75); opacity: 0.95; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, -20%) scale(0.9); } 30% { transform: translate(-50%, -65%) scale(1.12); } 100% { opacity: 0; transform: translate(-50%, -140%) scale(0.95); } }
+@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes nickFlow { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+@keyframes nickFireGlow {
+  0%, 100% { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 6px rgba(249, 115, 22, 0.65)); }
+  50% { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 14px rgba(254, 240, 138, 0.95)); }
+}
+@keyframes nickNeonPulse {
+  0%, 100% { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 5px var(--nick-glow, rgba(56, 189, 248, 0.6))); }
+  50% { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 14px var(--nick-glow, rgba(56, 189, 248, 0.95))); }
+}
+@keyframes menuCustomTilt {
+  0%, 100% { transform: rotate(-6deg) scale(1); }
+  50% { transform: rotate(8deg) scale(1.08); }
+}
+@keyframes menuQuestBob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-2.5px) scale(1.07); }
+}
+@keyframes menuAchBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  35% { transform: translateY(-2.5px) rotate(-5deg) scale(1.09); }
+  65% { transform: translateY(-1px) rotate(5deg) scale(1.05); }
+}
+
+/* ================= ВИРТУАЛИЗАЦИЯ ДЛИННЫХ СПИСКОВ ================= */
+.shop-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 74px;
+  contain: layout style;
+}
+.ach-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 108px;
+  contain: layout style paint;
+}
+.col-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 214px;
+  contain: layout style paint;
+}
+.custom-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 152px;
+  contain: layout style paint;
+}
+.style-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 60px;
+  contain: layout style paint;
+}
+
+/* ================= РЕЖИМ БЕЗ АНИМАЦИЙ (СЛАБЫЙ ТЕЛЕФОН) ================= */
+body.low-perf *,
+body.low-perf *::before,
+body.low-perf *::after {
+  animation: none !important;
+  transition: none !important;
+}
+body.low-perf .bg-art-img,
+body.low-perf .loading-bg-art {
+  transform: none !important;
+  will-change: auto !important;
+}
+body.low-perf .shop-panel,
+body.low-perf .menu-btn,
+body.low-perf .diamond-pill,
+body.low-perf .modal-overlay {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body.low-perf .modal-overlay {
+  background: rgba(0, 0, 0, 0.84) !important;
+}
+body.low-perf .shop-panel { background: rgba(14, 22, 17, 0.98) !important; }
+body.low-perf .app-shell::before,
+body.low-perf .bg-ambient-layer,
+body.low-perf .bg-drops-layer,
+body.low-perf .loading-fireflies,
+body.low-perf .monkey-button::before,
+body.low-perf .monkey-rays,
+body.low-perf .monkey-aura,
+body.low-perf .monkey-orbit,
+body.low-perf .tap-ripple,
+body.low-perf .tap-spark,
+body.low-perf .fever-bar-fill::before,
+body.low-perf .stage-mini-btn > span[data-svg]::after,
+body.low-perf .diamond-shop-btn::after,
+body.low-perf .premium-compact-btn::after,
+body.low-perf .vip-hero-card::after,
+body.low-perf .skin-card::after,
+body.low-perf .pstyle-fx-pulse::after,
+body.low-perf .menu-alert-badge::after,
+body.low-perf .mini-ready-dot::after {
+  display: none !important;
+}
+body.low-perf .monkey-button {
+  box-shadow: 0 0 12px rgba(255, 212, 59, 0.25) !important;
+}
+body.low-perf .monkey-button.tapped .monkey-visual img.monkey-img,
+body.low-perf .monkey-button.tapped .monkey-visual svg {
+  transform: scale(0.93) !important;
+  filter: none !important;
+}
+body.low-perf svg,
+body.low-perf img.monkey-img,
+body.low-perf .banana-coin-svg,
+body.low-perf .diamond-icon,
+body.low-perf .menu-btn-icon,
+body.low-perf .tab-icon,
+body.low-perf .floating-plus,
+body.low-perf .golden-banana-btn,
+body.low-perf .ach-star,
+body.low-perf .vip-hero-crown,
+body.low-perf .avatar-frame-deco {
+  filter: none !important;
+  text-shadow: none !important;
+}
+body.low-perf .shop-item,
+body.low-perf .ach-card,
+body.low-perf .col-card,
+body.low-perf .buy-btn,
+body.low-perf .menu-btn,
+body.low-perf .quest-card,
+body.low-perf .modal-card {
+  box-shadow: none !important;
+}
