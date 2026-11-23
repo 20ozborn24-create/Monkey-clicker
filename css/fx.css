@@ -469,7 +469,7 @@
   50% { opacity: 1; transform: scale(1.15, 1.06); }
 }
 @keyframes startBtnAppear { from { opacity: 0; transform: scale(0.8) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-@keyframes startBtnPulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.08); } }
+@keyframes startBtnPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
 @keyframes bgAuroraMove { 0%, 100% { background-position: 0% 20%; } 50% { background-position: 100% 80%; } }
 @keyframes bgWaveShift { 0%, 100% { background-position: 50% 0%; } 50% { background-position: 50% 100%; } }
 @keyframes bgGlowBreathe { 0%, 100% { opacity: 0.45; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.06); } }
