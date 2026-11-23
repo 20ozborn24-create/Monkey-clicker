@@ -1,0 +1,8 @@
+{
+  "appId": "com.ozborn.monkeyclicker",
+  "appName": "Monkey Clicker",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#0f1712"
+  }
+}
