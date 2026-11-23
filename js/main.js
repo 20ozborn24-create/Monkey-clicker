@@ -522,53 +522,58 @@ function initLifecycleHandlers() {
 
 function init() {
   injectUiIcons();
-  if (els.headerBananaIcon) els.headerBananaIcon.innerHTML = createBananaSvg(BANANAS_DATA[1], "hdr");
-
   applySettingsToUI();
-  checkAndRefreshQuests("daily", false);
-  checkAndRefreshQuests("weekly", false);
-  buildQuestsList("daily");
-  buildQuestsList("weekly");
-
-  buildShops();
-  updateActiveMonkeyUI();
-  setBuyMultiplier(1);
-
-  initCustomization();
-  initProfile();
-  initWheel();
-  initCoconuts();
-  initCollections();
-  initLevelModal();
-  initDailyLogin();
-  initGoldenBanana();
-  initModalsAndControls();
-  initLifecycleHandlers();
-
-  if (els.monkeyTapBtn) {
-    els.monkeyTapBtn.addEventListener("pointerdown", (e) => {
-      if (e.button !== undefined && e.button !== 0) return;
-      e.preventDefault();
-      onTap(e.clientX, e.clientY);
-    });
-    els.monkeyTapBtn.addEventListener("click", (e) => {
-      if (e.detail === 0) onTap(0, 0);
-    });
-  }
-
-  if (els.activeMonkeyBadge) {
-    els.activeMonkeyBadge.style.cursor = "pointer";
-    els.activeMonkeyBadge.title = "Выбрать скин для этой обезьянки";
-    els.activeMonkeyBadge.onclick = () => openMonkeySkinsShortcut?.(state.activeMonkeyId || 0);
-  }
-
-  applyOfflineIncome();
-  updateUI(true);
   runLoadingScreen();
 
-  lastTickTime = performance.now();
-  setInterval(gameTick, 250);
-  setInterval(triggerIdleMonkeyAnim, 3600);
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      if (els.headerBananaIcon) els.headerBananaIcon.innerHTML = createBananaSvg(BANANAS_DATA[1], "hdr");
+
+      checkAndRefreshQuests("daily", false);
+      checkAndRefreshQuests("weekly", false);
+      buildQuestsList("daily");
+      buildQuestsList("weekly");
+
+      buildShops();
+      updateActiveMonkeyUI();
+      setBuyMultiplier(1);
+
+      initCustomization();
+      initProfile();
+      initWheel();
+      initCoconuts();
+      initCollections();
+      initLevelModal();
+      initDailyLogin();
+      initGoldenBanana();
+      initModalsAndControls();
+      initLifecycleHandlers();
+
+      if (els.monkeyTapBtn) {
+        els.monkeyTapBtn.addEventListener("pointerdown", (e) => {
+          if (e.button !== undefined && e.button !== 0) return;
+          e.preventDefault();
+          onTap(e.clientX, e.clientY);
+        });
+        els.monkeyTapBtn.addEventListener("click", (e) => {
+          if (e.detail === 0) onTap(0, 0);
+        });
+      }
+
+      if (els.activeMonkeyBadge) {
+        els.activeMonkeyBadge.style.cursor = "pointer";
+        els.activeMonkeyBadge.title = "Выбрать скин для этой обезьянки";
+        els.activeMonkeyBadge.onclick = () => openMonkeySkinsShortcut?.(state.activeMonkeyId || 0);
+      }
+
+      applyOfflineIncome();
+      updateUI(true);
+
+      lastTickTime = performance.now();
+      setInterval(gameTick, 250);
+      setInterval(triggerIdleMonkeyAnim, 3600);
+    }, 30);
+  });
 }
 
 init();
