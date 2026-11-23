@@ -1,0 +1,125 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Prepare web assets
+        run: |
+          mkdir -p www
+          cp index.html www/
+          cp -r css fonts img js www/
+
+      - name: Install Capacitor and add Android
+        run: |
+          npm install
+          npx cap add android
+
+      - name: Configure icon, vibration and portrait mode
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          import os
+          from PIL import Image, ImageDraw
+
+          src = Image.open("img/icon.png").convert("RGBA")
+          m = max(src.size)
+          sq = Image.new("RGBA", (m, m), (0, 0, 0, 0))
+          sq.paste(src, ((m - src.width) // 2, (m - src.height) // 2))
+
+          res_dir = "android/app/src/main/res"
+          sizes = {
+              "mipmap-mdpi": (48, 108),
+              "mipmap-hdpi": (72, 162),
+              "mipmap-xhdpi": (96, 216),
+              "mipmap-xxhdpi": (144, 324),
+              "mipmap-xxxhdpi": (192, 432),
+          }
+
+          for folder, (icon_sz, fg_sz) in sizes.items():
+              out_dir = os.path.join(res_dir, folder)
+              os.makedirs(out_dir, exist_ok=True)
+
+              ic = sq.resize((icon_sz, icon_sz), Image.LANCZOS)
+              ic.save(os.path.join(out_dir, "ic_launcher.png"))
+
+              mask = Image.new("L", (icon_sz, icon_sz), 0)
+              ImageDraw.Draw(mask).ellipse((0, 0, icon_sz - 1, icon_sz - 1), fill=255)
+              rnd = Image.new("RGBA", (icon_sz, icon_sz), (0, 0, 0, 0))
+              rnd.paste(ic, (0, 0), mask)
+              rnd.save(os.path.join(out_dir, "ic_launcher_round.png"))
+
+              fg = Image.new("RGBA", (fg_sz, fg_sz), (0, 0, 0, 0))
+              inner_sz = int(fg_sz * 0.68)
+              inner = sq.resize((inner_sz, inner_sz), Image.LANCZOS)
+              offset = (fg_sz - inner_sz) // 2
+              fg.paste(inner, (offset, offset), inner)
+              fg.save(os.path.join(out_dir, "ic_launcher_foreground.png"))
+
+          values_dir = os.path.join(res_dir, "values")
+          os.makedirs(values_dir, exist_ok=True)
+          with open(os.path.join(values_dir, "ic_launcher_background.xml"), "w", encoding="utf-8") as f:
+              f.write('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#121814</color>\n</resources>\n')
+
+          anydpi_dir = os.path.join(res_dir, "mipmap-anydpi-v26")
+          os.makedirs(anydpi_dir, exist_ok=True)
+          adaptive_xml = '<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n    <background android:drawable="@color/ic_launcher_background"/>\n    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>\n</adaptive-icon>\n'
+          for name in ("ic_launcher.xml", "ic_launcher_round.xml"):
+              with open(os.path.join(anydpi_dir, name), "w", encoding="utf-8") as f:
+                  f.write(adaptive_xml)
+
+          manifest_path = "android/app/src/main/AndroidManifest.xml"
+          with open(manifest_path, "r", encoding="utf-8") as f:
+              manifest = f.read()
+
+          if "android.permission.VIBRATE" not in manifest:
+              manifest = manifest.replace(
+                  "<application",
+                  '<uses-permission android:name="android.permission.VIBRATE" />\n    <application',
+                  1
+              )
+          if "android:screenOrientation" not in manifest:
+              manifest = manifest.replace(
+                  "<activity",
+                  '<activity android:screenOrientation="portrait"',
+                  1
+              )
+          with open(manifest_path, "w", encoding="utf-8") as f:
+              f.write(manifest)
+          PY
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk ../Monkey-Clicker.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Monkey-Clicker-APK
+          path: Monkey-Clicker.apk
