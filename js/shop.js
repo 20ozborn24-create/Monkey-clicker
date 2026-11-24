@@ -16,6 +16,8 @@ let skinPopTimer = null;
 let shopScrollBound = false;
 let shopBuildToken = 0;
 let shopBuildRaf = null;
+let deferredShopPending = false;
+let jumpScrollRaf = null;
 
 const BANANA_RANKS = [
   ["", ""],
@@ -107,18 +109,87 @@ function createBananaCard(b, idx) {
   return card;
 }
 
+function syncBananaCard(i, bounds = null) {
+  const ref = bananaDomRefs[i];
+  if (!ref) return;
+  const owned = state.bananaCounts[i] || 0;
+  if (ref.lastOwned !== owned) {
+    ref.lastOwned = owned;
+    ref.cachedCostKey = "";
+    ref.maxCacheKey = "";
+    ref.countSpan.textContent = owned;
+    ref.progRow.classList.toggle("hidden", owned <= 0);
+
+    const tiers = Math.floor(owned / 25);
+    const mult = getBananaMilestoneMult(owned);
+    const nextMult = Math.pow(1.5, tiers + 1);
+    ref.unitBpsSpan.textContent = `+${formatNum(BANANAS_DATA[i].baseBps * mult)}/сек`;
+    ref.multPill.textContent = formatBananaMult(mult);
+    ref.multPill.classList.toggle("has-bonus", tiers > 0);
+    ref.progFill.style.width = `${((owned % 25) / 25) * 100}%`;
+    ref.progText.textContent = `${owned}/${(tiers + 1) * 25} → ${formatBananaMult(nextMult)}`;
+
+    const rank = getBananaRank(owned);
+    if (ref.lastRank !== rank) {
+      ref.lastRank = rank;
+      ref.iconBox.classList.remove("rank-bronze", "rank-silver", "rank-gold", "rank-platinum", "rank-diamond");
+      if (BANANA_RANKS[rank][0]) ref.iconBox.classList.add(BANANA_RANKS[rank][0]);
+    }
+  }
+
+  if (ref.lastMult !== buyMultiplier) {
+    ref.lastMult = buyMultiplier;
+    ref.maxCacheKey = "";
+  }
+
+  if (buyMultiplier === "max") {
+    const mKey = `${owned}_max`;
+    if (ref.maxCacheKey !== mKey || state.bananas < ref.maxMinBananas || state.bananas >= ref.maxNextBananas) {
+      const qty = getMaxAffordableBananas(i);
+      const cost = getBananaBulkCost(i, qty > 0 ? qty : 1);
+      const nextCost = qty > 0 ? getBananaBulkCost(i, qty + 1) : cost;
+      ref.maxCacheKey = mKey;
+      ref.maxMinBananas = qty > 0 ? cost : 0;
+      ref.maxNextBananas = Number.isFinite(nextCost) ? nextCost : Infinity;
+      syncBtn(ref, qty > 0 ? `${formatNum(cost)} 🍌 (+${qty})` : `${formatNum(cost)} 🍌`, `buy-btn ${qty > 0 ? "can-afford" : "cannot-afford"}`, qty <= 0);
+    }
+    if (bounds) {
+      if (ref.maxMinBananas > bounds.min) bounds.min = ref.maxMinBananas;
+      if (ref.maxNextBananas < bounds.max) bounds.max = ref.maxNextBananas;
+    }
+  } else {
+    const cKey = `${owned}_${buyMultiplier}`;
+    if (ref.cachedCostKey !== cKey) {
+      ref.cachedCostKey = cKey;
+      ref.cachedCost = getBananaBulkCost(i, buyMultiplier);
+    }
+    const cost = ref.cachedCost;
+    const ok = Number.isFinite(cost) && state.bananas >= cost;
+    syncBtn(ref, `${formatNum(cost)} 🍌`, `buy-btn ${ok ? "can-afford" : "cannot-afford"}`, !ok);
+    if (bounds) {
+      if (ok && cost > bounds.min) bounds.min = cost;
+      if (!ok && Number.isFinite(cost) && cost < bounds.max) bounds.max = cost;
+    }
+  }
+}
+
 function flushRemainingBananasUpTo(targetIdx) {
   if (!els.bananasList) return;
   const limit = Math.min(BANANAS_DATA.length - 1, targetIdx);
-  if (bananaDomRefs.length > limit) return;
+  const start = bananaDomRefs.length;
+  if (start > limit) return;
 
   const frag = document.createDocumentFragment();
-  for (let i = bananaDomRefs.length; i <= limit; i++) {
+  for (let i = start; i <= limit; i++) {
     frag.appendChild(createBananaCard(BANANAS_DATA[i], i));
   }
   els.bananasList.appendChild(frag);
-  markUiDirty("shop");
-  updateShopUI();
+  const bounds = { min: shopSafeMin, max: shopSafeMax };
+  for (let i = start; i <= limit; i++) {
+    syncBananaCard(i, bounds);
+  }
+  shopSafeMin = bounds.min;
+  shopSafeMax = bounds.max;
 }
 
 function jumpToFrontierBanana() {
@@ -127,12 +198,12 @@ function jumpToFrontierBanana() {
   const list = els.bananasList;
   if (!ref || !ref.card || !list) return;
 
-  const listRect = list.getBoundingClientRect();
-  const cardRect = ref.card.getBoundingClientRect();
-  const delta = (cardRect.top - listRect.top) - (listRect.height - cardRect.height) / 2;
+  const baseTop = ref.card.offsetParent === list ? ref.card.offsetTop : ref.card.offsetTop - list.offsetTop;
+  const cardH = ref.card.offsetHeight || 74;
+  const targetTop = Math.max(0, baseTop - (list.clientHeight - cardH) / 2);
 
   list.scrollTo({
-    top: Math.max(0, list.scrollTop + delta),
+    top: targetTop,
     behavior: state.lowPerfMode ? "auto" : "smooth"
   });
 
@@ -147,9 +218,18 @@ function jumpToFrontierBanana() {
   triggerHaptic(10);
 }
 
+function scheduleJumpBtnRender() {
+  if (jumpScrollRaf) return;
+  jumpScrollRaf = requestAnimationFrame(() => {
+    jumpScrollRaf = null;
+    renderShopJumpBtnVisibility();
+  });
+}
+
 function renderShopJumpBtnVisibility() {
   if (!els.shopJumpBtn || !els.bananasList) return;
-  const showBananas = !els.bananasList.classList.contains("hidden");
+  const list = els.bananasList;
+  const showBananas = !list.classList.contains("hidden");
   if (!showBananas || shopJumpTargetIdx < 3) {
     if (lastShopJumpKey !== "hide") {
       lastShopJumpKey = "hide";
@@ -160,19 +240,20 @@ function renderShopJumpBtnVisibility() {
 
   let dir = "down";
   const ref = bananaDomRefs[shopJumpTargetIdx];
-  if (ref?.card) {
-    const listRect = els.bananasList.getBoundingClientRect();
-    const cardRect = ref.card.getBoundingClientRect();
-    if (listRect.height > 0 && cardRect.height > 0) {
-      if (cardRect.bottom >= listRect.top + 12 && cardRect.top <= listRect.bottom - 12) {
-        if (lastShopJumpKey !== "hide") {
-          lastShopJumpKey = "hide";
-          els.shopJumpBtn.classList.add("hidden");
-        }
-        return;
+  if (ref?.card && list.clientHeight > 0) {
+    const baseTop = ref.card.offsetParent === list ? ref.card.offsetTop : ref.card.offsetTop - list.offsetTop;
+    const relTop = baseTop - list.scrollTop;
+    const cardH = ref.card.offsetHeight || 74;
+    const relBottom = relTop + cardH;
+
+    if (relBottom >= 12 && relTop <= list.clientHeight - 12) {
+      if (lastShopJumpKey !== "hide") {
+        lastShopJumpKey = "hide";
+        els.shopJumpBtn.classList.add("hidden");
       }
-      if (cardRect.bottom < listRect.top + 12) dir = "up";
+      return;
     }
+    if (relBottom < 12) dir = "up";
   }
 
   const key = `${shopJumpTargetIdx}_${dir}`;
@@ -220,7 +301,47 @@ function updateShopJumpButton(showBananas) {
   renderShopJumpBtnVisibility();
 }
 
-function buildBananasList() {
+function pumpBananaChunks(token) {
+  if (token !== shopBuildToken || !els.bananasList) return;
+  const start = bananaDomRefs.length;
+  if (start >= BANANAS_DATA.length) {
+    shopBuildRaf = null;
+    renderShopJumpBtnVisibility();
+    return;
+  }
+
+  const end = Math.min(BANANAS_DATA.length, start + 22);
+  const frag = document.createDocumentFragment();
+  for (let i = start; i < end; i++) {
+    frag.appendChild(createBananaCard(BANANAS_DATA[i], i));
+  }
+  els.bananasList.appendChild(frag);
+
+  const bounds = { min: shopSafeMin, max: shopSafeMax };
+  for (let i = start; i < end; i++) {
+    syncBananaCard(i, bounds);
+  }
+  shopSafeMin = bounds.min;
+  shopSafeMax = bounds.max;
+
+  if (end < BANANAS_DATA.length) {
+    shopBuildRaf = requestAnimationFrame(() => pumpBananaChunks(token));
+  } else {
+    shopBuildRaf = null;
+    renderShopJumpBtnVisibility();
+  }
+}
+
+function startDeferredShopBuild() {
+  if (!deferredShopPending) return;
+  deferredShopPending = false;
+  if (bananaDomRefs.length < BANANAS_DATA.length && !shopBuildRaf) {
+    const token = shopBuildToken;
+    shopBuildRaf = requestAnimationFrame(() => pumpBananaChunks(token));
+  }
+}
+
+function buildBananasList(waitForLoad = false) {
   if (!els.bananasList) return;
   if (shopBuildRaf) {
     cancelAnimationFrame(shopBuildRaf);
@@ -237,34 +358,13 @@ function buildBananasList() {
   }
   els.bananasList.appendChild(firstFrag);
 
-  const appendChunk = () => {
-    if (token !== shopBuildToken || !els.bananasList) return;
-    const start = bananaDomRefs.length;
-    if (start >= BANANAS_DATA.length) {
-      shopBuildRaf = null;
-      markUiDirty("shop");
-      updateShopUI();
-      return;
-    }
-
-    const end = Math.min(BANANAS_DATA.length, start + 15);
-    const frag = document.createDocumentFragment();
-    for (let i = start; i < end; i++) {
-      frag.appendChild(createBananaCard(BANANAS_DATA[i], i));
-    }
-    els.bananasList.appendChild(frag);
-    markUiDirty("shop");
-    updateShopUI();
-
-    if (end < BANANAS_DATA.length) {
-      shopBuildRaf = requestAnimationFrame(appendChunk);
-    } else {
-      shopBuildRaf = null;
-    }
-  };
-
   if (firstBatch < BANANAS_DATA.length) {
-    shopBuildRaf = requestAnimationFrame(appendChunk);
+    if (waitForLoad) {
+      deferredShopPending = true;
+    } else {
+      deferredShopPending = false;
+      shopBuildRaf = requestAnimationFrame(() => pumpBananaChunks(token));
+    }
   }
 }
 
@@ -299,7 +399,7 @@ function ensureMonkeysListBuilt() {
   if (!monkeysListBuilt) buildMonkeysList();
 }
 
-function buildShops() {
+function buildShops(waitForLoad = false) {
   lastShopKey = "";
   lastShopModeKey = "";
   lastShopJumpKey = "";
@@ -316,12 +416,12 @@ function buildShops() {
   if (els.shopJumpBtn) els.shopJumpBtn.onclick = jumpToFrontierBanana;
   if (!shopScrollBound) {
     shopScrollBound = true;
-    els.bananasList?.addEventListener("scroll", renderShopJumpBtnVisibility, { passive: true });
-    window.addEventListener("resize", renderShopJumpBtnVisibility, { passive: true });
-    window.addEventListener("orientationchange", renderShopJumpBtnVisibility, { passive: true });
+    els.bananasList?.addEventListener("scroll", scheduleJumpBtnRender, { passive: true });
+    window.addEventListener("resize", scheduleJumpBtnRender, { passive: true });
+    window.addEventListener("orientationchange", scheduleJumpBtnRender, { passive: true });
   }
 
-  buildBananasList();
+  buildBananasList(waitForLoad);
 }
 
 function buyBanana(idx) {
@@ -414,68 +514,11 @@ function updateShopUI() {
     lastShopModeKey = modeKey;
     uiDirty.shop = false;
 
-    let nextSafeMin = 0;
-    let nextSafeMax = Infinity;
+    const bounds = { min: 0, max: Infinity };
 
     if (showBananas) {
       for (let i = 0; i < bananaDomRefs.length; i++) {
-        const ref = bananaDomRefs[i];
-        if (!ref) continue;
-        const owned = state.bananaCounts[i] || 0;
-        if (ref.lastOwned !== owned) {
-          ref.lastOwned = owned;
-          ref.cachedCostKey = "";
-          ref.maxCacheKey = "";
-          ref.countSpan.textContent = owned;
-          ref.progRow.classList.toggle("hidden", owned <= 0);
-
-          const tiers = Math.floor(owned / 25);
-          const mult = getBananaMilestoneMult(owned);
-          const nextMult = Math.pow(1.5, tiers + 1);
-          ref.unitBpsSpan.textContent = `+${formatNum(BANANAS_DATA[i].baseBps * mult)}/сек`;
-          ref.multPill.textContent = formatBananaMult(mult);
-          ref.multPill.classList.toggle("has-bonus", tiers > 0);
-          ref.progFill.style.width = `${((owned % 25) / 25) * 100}%`;
-          ref.progText.textContent = `${owned}/${(tiers + 1) * 25} → ${formatBananaMult(nextMult)}`;
-
-          const rank = getBananaRank(owned);
-          if (ref.lastRank !== rank) {
-            ref.lastRank = rank;
-            ref.iconBox.classList.remove("rank-bronze", "rank-silver", "rank-gold", "rank-platinum", "rank-diamond");
-            if (BANANA_RANKS[rank][0]) ref.iconBox.classList.add(BANANA_RANKS[rank][0]);
-          }
-        }
-
-        if (ref.lastMult !== buyMultiplier) {
-          ref.lastMult = buyMultiplier;
-          ref.maxCacheKey = "";
-        }
-
-        if (buyMultiplier === "max") {
-          const mKey = `${owned}_max`;
-          if (ref.maxCacheKey !== mKey || state.bananas < ref.maxMinBananas || state.bananas >= ref.maxNextBananas) {
-            const qty = getMaxAffordableBananas(i);
-            const cost = getBananaBulkCost(i, qty > 0 ? qty : 1);
-            const nextCost = qty > 0 ? getBananaBulkCost(i, qty + 1) : cost;
-            ref.maxCacheKey = mKey;
-            ref.maxMinBananas = qty > 0 ? cost : 0;
-            ref.maxNextBananas = Number.isFinite(nextCost) ? nextCost : Infinity;
-            syncBtn(ref, qty > 0 ? `${formatNum(cost)} 🍌 (+${qty})` : `${formatNum(cost)} 🍌`, `buy-btn ${qty > 0 ? "can-afford" : "cannot-afford"}`, qty <= 0);
-          }
-          if (ref.maxMinBananas > nextSafeMin) nextSafeMin = ref.maxMinBananas;
-          if (ref.maxNextBananas < nextSafeMax) nextSafeMax = ref.maxNextBananas;
-        } else {
-          const cKey = `${owned}_${buyMultiplier}`;
-          if (ref.cachedCostKey !== cKey) {
-            ref.cachedCostKey = cKey;
-            ref.cachedCost = getBananaBulkCost(i, buyMultiplier);
-          }
-          const cost = ref.cachedCost;
-          const ok = Number.isFinite(cost) && state.bananas >= cost;
-          syncBtn(ref, `${formatNum(cost)} 🍌`, `buy-btn ${ok ? "can-afford" : "cannot-afford"}`, !ok);
-          if (ok && cost > nextSafeMin) nextSafeMin = cost;
-          if (!ok && Number.isFinite(cost) && cost < nextSafeMax) nextSafeMax = cost;
-        }
+        syncBananaCard(i, bounds);
       }
     }
 
@@ -504,14 +547,14 @@ function updateShopUI() {
         } else {
           const ok = state.bananas >= cost;
           syncBtn(ref, `${formatNum(cost)} 🍌`, `buy-btn ${ok ? "can-afford" : "cannot-afford"}`, !ok);
-          if (ok && cost > nextSafeMin) nextSafeMin = cost;
-          if (!ok && cost < nextSafeMax) nextSafeMax = cost;
+          if (ok && cost > bounds.min) bounds.min = cost;
+          if (!ok && cost < bounds.max) bounds.max = cost;
         }
       }
     }
 
-    shopSafeMin = nextSafeMin;
-    shopSafeMax = nextSafeMax;
+    shopSafeMin = bounds.min;
+    shopSafeMax = bounds.max;
 
     setText(els.bananasProgressBadge, `${cachedSpeciesCount}/${BANANAS_DATA.length}`);
     setText(els.monkeysProgressBadge, `${state.unlockedMonkeys.length}/${MONKEYS_DATA.length}`);
