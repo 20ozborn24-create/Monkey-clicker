@@ -24,6 +24,10 @@ let lastHeaderDiam = "";
 let lastHeaderBpc = "";
 let lastHeaderBps = "";
 
+let initStepsQueue = [];
+let initPumpRaf = null;
+let gameReadyDone = false;
+
 function invalidateTapBtnRect() {
   cachedTapBtnRect = null;
 }
@@ -40,7 +44,8 @@ function isModalOpen(el) {
 }
 
 function syncSvgAnimationsPause() {
-  const shouldPause = isTabHidden || Boolean(state.lowPerfMode);
+  const isStillLoading = Boolean(els.appShell && els.appShell.classList.contains("is-loading"));
+  const shouldPause = isTabHidden || Boolean(state.lowPerfMode) || isStillLoading;
   const sprite = document.getElementById("svgSprite");
   if (!sprite) return;
   try {
@@ -495,62 +500,98 @@ function initLifecycleHandlers() {
   window.addEventListener("beforeunload", () => saveState());
 }
 
-function init() {
-  injectUiIcons();
-  applySettingsToUI();
-  runLoadingScreen();
-
-  setTimeout(() => {
-    if (els.headerBananaIcon) els.headerBananaIcon.innerHTML = createBananaSvg(BANANAS_DATA[1], "hdr");
-    checkAndRefreshQuests("daily", false);
-    checkAndRefreshQuests("weekly", false);
-    buildQuestsList("daily");
-    buildQuestsList("weekly");
-
-    requestAnimationFrame(() => {
+function prepareInitQueue() {
+  initStepsQueue = [
+    () => {
+      if (els.headerBananaIcon) els.headerBananaIcon.innerHTML = createBananaSvg(BANANAS_DATA[1], "hdr");
+      checkAndRefreshQuests("daily", false);
+      checkAndRefreshQuests("weekly", false);
+      buildQuestsList("daily");
+      buildQuestsList("weekly");
+    },
+    () => {
       buildShops(true);
       updateActiveMonkeyUI();
       setBuyMultiplier(1);
       initTapEffectPool();
+    },
+    () => {
+      initCustomization();
+      initProfile();
+      initWheel();
+      initCoconuts();
+    },
+    () => {
+      initCollections();
+      initLevelModal();
+      initDailyLogin();
+      initGoldenBanana();
+      initModalsAndControls();
+      initLifecycleHandlers();
+    },
+    () => {
+      if (els.monkeyTapBtn) {
+        els.monkeyTapBtn.addEventListener("pointerdown", (e) => {
+          if (e.button !== undefined && e.button !== 0) return;
+          e.preventDefault();
+          onTap(e.clientX, e.clientY);
+        });
+        els.monkeyTapBtn.addEventListener("click", (e) => {
+          if (e.detail === 0) onTap(0, 0);
+        });
+      }
 
-      requestAnimationFrame(() => {
-        initCustomization();
-        initProfile();
-        initWheel();
-        initCoconuts();
-        initCollections();
-        initLevelModal();
-        initDailyLogin();
-        initGoldenBanana();
-        initModalsAndControls();
-        initLifecycleHandlers();
+      if (els.activeMonkeyBadge) {
+        els.activeMonkeyBadge.style.cursor = "pointer";
+        els.activeMonkeyBadge.title = "Выбрать скин для этой обезьянки";
+        els.activeMonkeyBadge.onclick = () => openMonkeySkinsShortcut?.(state.activeMonkeyId || 0);
+      }
 
-        if (els.monkeyTapBtn) {
-          els.monkeyTapBtn.addEventListener("pointerdown", (e) => {
-            if (e.button !== undefined && e.button !== 0) return;
-            e.preventDefault();
-            onTap(e.clientX, e.clientY);
-          });
-          els.monkeyTapBtn.addEventListener("click", (e) => {
-            if (e.detail === 0) onTap(0, 0);
-          });
-        }
+      applyOfflineIncome();
+      updateUI(true);
+      startDeferredShopBuild();
 
-        if (els.activeMonkeyBadge) {
-          els.activeMonkeyBadge.style.cursor = "pointer";
-          els.activeMonkeyBadge.title = "Выбрать скин для этой обезьянки";
-          els.activeMonkeyBadge.onclick = () => openMonkeySkinsShortcut?.(state.activeMonkeyId || 0);
-        }
+      lastTickTime = performance.now();
+      setInterval(gameTick, 250);
+      setInterval(triggerIdleMonkeyAnim, 3600);
+      gameReadyDone = true;
+    }
+  ];
+}
 
-        applyOfflineIncome();
-        updateUI(true);
+function pumpInitQueue() {
+  initPumpRaf = null;
+  const step = initStepsQueue.shift();
+  if (step) step();
+  if (initStepsQueue.length > 0) {
+    initPumpRaf = requestAnimationFrame(pumpInitQueue);
+  }
+}
 
-        lastTickTime = performance.now();
-        setInterval(gameTick, 250);
-        setInterval(triggerIdleMonkeyAnim, 3600);
-      });
-    });
-  }, 120);
+window.onLoadingBarReady = function () {
+  if (gameReadyDone || initPumpRaf) return;
+  if (initStepsQueue.length > 0) {
+    initPumpRaf = requestAnimationFrame(pumpInitQueue);
+  }
+};
+
+window.ensureGameReadySync = function () {
+  if (initPumpRaf) {
+    cancelAnimationFrame(initPumpRaf);
+    initPumpRaf = null;
+  }
+  while (initStepsQueue.length > 0) {
+    const step = initStepsQueue.shift();
+    if (step) step();
+  }
+  gameReadyDone = true;
+};
+
+function init() {
+  injectUiIcons();
+  applySettingsToUI();
+  prepareInitQueue();
+  runLoadingScreen();
 }
 
 init();
