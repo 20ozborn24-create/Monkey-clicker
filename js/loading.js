@@ -65,47 +65,73 @@ function runLoadingScreen() {
   const steps = [
     [25, "Выращиваем бананы..."],
     [55, "Будим обезьянок..."],
-    [82, "Полируем алмазы..."],
+    [85, "Полируем алмазы..."],
     [100, "Готово к сбору!"]
   ];
 
-  let pct = 0;
-  const timer = setInterval(() => {
-    pct = Math.min(100, pct + 10 + Math.floor(Math.random() * 10));
+  const durationMs = state.lowPerfMode ? 180 : 620;
+  let startAt = null;
+  let lastShownPct = -1;
+  let lastStepText = "";
+
+  const frame = (now) => {
+    if (startAt === null) startAt = now;
+    const t = Math.min(1, (now - startAt) / durationMs);
+    const eased = 1 - Math.pow(1 - t, 2.2);
+    const pct = Math.min(100, Math.round(eased * 100));
+
     if (els.loadingBarFill) {
-      els.loadingBarFill.style.transform = `scaleX(${(pct / 100).toFixed(3)})`;
+      els.loadingBarFill.style.transform = `scaleX(${eased.toFixed(4)})`;
     }
-    if (els.loadingPercentText) setText(els.loadingPercentText, `${pct}%`);
-
-    const step = steps.find(([limit]) => pct <= limit) || steps[steps.length - 1];
-    if (els.loadingStatusText) setText(els.loadingStatusText, step[1]);
-
-    if (pct >= 100) {
-      clearInterval(timer);
-      if (els.loadingScreen) els.loadingScreen.classList.add("is-ready");
-      if (els.loadingReadyBadge) els.loadingReadyBadge.classList.remove("hidden");
-      if (els.startGameBtn) {
-        els.startGameBtn.querySelectorAll("img[data-src]").forEach((img) => {
-          img.src = img.dataset.src;
-          img.removeAttribute("data-src");
-        });
-        els.startGameBtn.classList.remove("hidden");
-      }
-      if (typeof startDeferredShopBuild === "function") {
-        startDeferredShopBuild();
+    if (pct !== lastShownPct) {
+      lastShownPct = pct;
+      if (els.loadingPercentText) setText(els.loadingPercentText, `${pct}%`);
+      const step = steps.find(([limit]) => pct <= limit) || steps[steps.length - 1];
+      if (lastStepText !== step[1]) {
+        lastStepText = step[1];
+        if (els.loadingStatusText) setText(els.loadingStatusText, step[1]);
       }
     }
-  }, 60);
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+      return;
+    }
+
+    if (els.loadingScreen) els.loadingScreen.classList.add("is-ready");
+    if (els.loadingReadyBadge) els.loadingReadyBadge.classList.remove("hidden");
+    if (els.startGameBtn) {
+      els.startGameBtn.querySelectorAll("img[data-src]").forEach((img) => {
+        img.src = img.dataset.src;
+        img.removeAttribute("data-src");
+      });
+      els.startGameBtn.classList.remove("hidden");
+    }
+    if (typeof window.onLoadingBarReady === "function") {
+      window.onLoadingBarReady();
+    }
+  };
+
+  requestAnimationFrame(frame);
 
   if (els.startGameBtn) {
     els.startGameBtn.onclick = () => {
       if (gameStarted) return;
+      if (typeof window.ensureGameReadySync === "function") {
+        window.ensureGameReadySync();
+      }
       gameStarted = true;
       els.startGameBtn.classList.add("is-pressed");
       els.startGameBtn.disabled = true;
       lastTickTime = performance.now();
       playSfx("start");
       triggerHaptic(15);
+
+      if (els.appShell) els.appShell.classList.remove("is-loading");
+      invalidateTapBtnRect();
+      syncSvgAnimationsPause();
+      if (typeof renderShopJumpBtnVisibility === "function") renderShopJumpBtnVisibility();
+
       if (els.loadingScreen) {
         els.loadingScreen.classList.add("fade-out");
         setTimeout(() => els.loadingScreen.classList.add("hidden"), 260);
