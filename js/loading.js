@@ -72,7 +72,9 @@ function runLoadingScreen() {
   let pct = 0;
   const timer = setInterval(() => {
     pct = Math.min(100, pct + 10 + Math.floor(Math.random() * 10));
-    if (els.loadingBarFill) els.loadingBarFill.style.width = `${pct}%`;
+    if (els.loadingBarFill) {
+      els.loadingBarFill.style.transform = `scaleX(${(pct / 100).toFixed(3)})`;
+    }
     if (els.loadingPercentText) setText(els.loadingPercentText, `${pct}%`);
 
     const step = steps.find(([limit]) => pct <= limit) || steps[steps.length - 1];
@@ -82,7 +84,16 @@ function runLoadingScreen() {
       clearInterval(timer);
       if (els.loadingScreen) els.loadingScreen.classList.add("is-ready");
       if (els.loadingReadyBadge) els.loadingReadyBadge.classList.remove("hidden");
-      if (els.startGameBtn) els.startGameBtn.classList.remove("hidden");
+      if (els.startGameBtn) {
+        els.startGameBtn.querySelectorAll("img[data-src]").forEach((img) => {
+          img.src = img.dataset.src;
+          img.removeAttribute("data-src");
+        });
+        els.startGameBtn.classList.remove("hidden");
+      }
+      if (typeof startDeferredShopBuild === "function") {
+        startDeferredShopBuild();
+      }
     }
   }, 60);
 
