@@ -4,6 +4,9 @@ let playTimeAchRef = null;
 let achFilter = "all";
 let lastAchFilter = "all";
 let achListBuilt = false;
+let achBuildDone = false;
+let achBuildToken = 0;
+let achBuildRaf = null;
 let achHeaderSynced = false;
 let achListDirty = true;
 let lastAchBadgeHidden = null;
@@ -82,80 +85,117 @@ function getAchProgress(ach) {
   return 0;
 }
 
+function createAchCard(ach) {
+  const totalStars = ach.stages.length;
+  const starsHtml = `<span class="ach-star">★</span>`.repeat(totalStars);
+
+  const achIconHtml = ach.kind === "clicks"
+    ? useSvg("ico-tap")
+    : ach.iconId
+      ? useSvg(ach.iconId)
+      : ach.kind === "monkeys"
+        ? useSvg("ico-tab-monkeys")
+        : ach.kind === "bananaCount" && BANANAS_DATA[ach.bananaId]
+          ? createBananaSvg(BANANAS_DATA[ach.bananaId], "ach")
+          : ach.icon;
+
+  const card = mkEl(
+    "div",
+    "ach-card",
+    `<div class="ach-top-row">` +
+      `<div class="ach-icon">${achIconHtml}</div>` +
+      `<div class="ach-info">` +
+        `<div class="ach-title-row"><span class="ach-title">${ach.title}</span><span class="ach-stars-count">★ 0/${totalStars}</span></div>` +
+        `<div class="ach-desc"></div>` +
+        `<div class="ach-progress-bar"><div class="ach-progress-fill"></div></div>` +
+        `<div class="ach-progress-text"></div>` +
+      `</div>` +
+      `<button type="button" class="ach-claim-btn pending"></button>` +
+    `</div>` +
+    `<div class="ach-stars-row" aria-label="Прогресс звёзд">${starsHtml}</div>`
+  );
+
+  const btn = card.querySelector(".ach-claim-btn");
+  btn.onclick = () => claimAchievement(ach.id);
+
+  const ref = {
+    ach,
+    card,
+    starsCount: card.querySelector(".ach-stars-count"),
+    descEl: card.querySelector(".ach-desc"),
+    fill: card.querySelector(".ach-progress-fill"),
+    progText: card.querySelector(".ach-progress-text"),
+    btn,
+    stars: Array.from(card.querySelectorAll(".ach-star")),
+    lastShow: null,
+    lastStageIdx: -1,
+    lastDesc: "",
+    lastPct: "",
+    lastProg: "",
+    lastDone: null
+  };
+  achDomRefs.push(ref);
+  if (ach.kind === "playTime") playTimeAchRef = ref;
+  return card;
+}
+
 function buildAchievementsList() {
   if (!els.achievementsList) return;
+  if (achBuildRaf) {
+    cancelAnimationFrame(achBuildRaf);
+    achBuildRaf = null;
+  }
+  const token = ++achBuildToken;
+
   els.achievementsList.innerHTML = "";
   achDomRefs.length = 0;
   playTimeAchRef = null;
+  achBuildDone = false;
 
   achEmptyEl = mkEl("div", "ach-empty-state hidden");
   els.achievementsList.appendChild(achEmptyEl);
 
-  const starSvg = useSvg("ico-star-off");
-  const frag = document.createDocumentFragment();
-
-  ACHIEVEMENTS_DATA.forEach((ach) => {
-    const totalStars = ach.stages.length;
-    const starsHtml = `<span class="ach-star">${starSvg}</span>`.repeat(totalStars);
-
-    const achIconHtml = ach.kind === "clicks"
-      ? useSvg("ico-tap")
-      : ach.iconId
-        ? useSvg(ach.iconId)
-        : ach.kind === "monkeys"
-          ? useSvg("ico-tab-monkeys")
-          : ach.kind === "bananaCount" && BANANAS_DATA[ach.bananaId]
-            ? createBananaSvg(BANANAS_DATA[ach.bananaId], "ach")
-            : ach.icon;
-
-    const card = mkEl(
-      "div",
-      "ach-card",
-      `<div class="ach-top-row">` +
-        `<div class="ach-icon">${achIconHtml}</div>` +
-        `<div class="ach-info">` +
-          `<div class="ach-title-row"><span class="ach-title">${ach.title}</span><span class="ach-stars-count">★ 0/${totalStars}</span></div>` +
-          `<div class="ach-desc"></div>` +
-          `<div class="ach-progress-bar"><div class="ach-progress-fill"></div></div>` +
-          `<div class="ach-progress-text"></div>` +
-        `</div>` +
-        `<button type="button" class="ach-claim-btn pending"></button>` +
-      `</div>` +
-      `<div class="ach-stars-row" aria-label="Прогресс звёзд">${starsHtml}</div>`
-    );
-
-    const btn = card.querySelector(".ach-claim-btn");
-    btn.onclick = () => claimAchievement(ach.id);
-    frag.appendChild(card);
-
-    const ref = {
-      ach,
-      card,
-      starsCount: card.querySelector(".ach-stars-count"),
-      descEl: card.querySelector(".ach-desc"),
-      fill: card.querySelector(".ach-progress-fill"),
-      progText: card.querySelector(".ach-progress-text"),
-      btn,
-      stars: Array.from(card.querySelectorAll(".ach-star")),
-      starUses: Array.from(card.querySelectorAll(".ach-star use")),
-      lastShow: null,
-      lastStageIdx: -1,
-      lastDesc: "",
-      lastPct: "",
-      lastProg: "",
-      lastDone: null
-    };
-    achDomRefs.push(ref);
-    if (ach.kind === "playTime") playTimeAchRef = ref;
-  });
-
-  els.achievementsList.appendChild(frag);
+  const firstCount = Math.min(10, ACHIEVEMENTS_DATA.length);
+  const firstFrag = document.createDocumentFragment();
+  for (let i = 0; i < firstCount; i++) {
+    firstFrag.appendChild(createAchCard(ACHIEVEMENTS_DATA[i]));
+  }
+  els.achievementsList.appendChild(firstFrag);
   achListBuilt = true;
   achListDirty = true;
 
-  if (state.lowPerfMode && typeof syncSvgAnimationsPause === "function") {
-    syncSvgAnimationsPause();
+  if (firstCount >= ACHIEVEMENTS_DATA.length) {
+    achBuildDone = true;
+    return;
   }
+
+  const appendChunk = () => {
+    if (token !== achBuildToken || !els.achievementsList) return;
+    const start = achDomRefs.length;
+    const end = Math.min(ACHIEVEMENTS_DATA.length, start + 14);
+    const frag = document.createDocumentFragment();
+    for (let i = start; i < end; i++) {
+      frag.appendChild(createAchCard(ACHIEVEMENTS_DATA[i]));
+    }
+    els.achievementsList.appendChild(frag);
+    achListDirty = true;
+
+    if (end >= ACHIEVEMENTS_DATA.length) {
+      achBuildDone = true;
+      achBuildRaf = null;
+      if (state.lowPerfMode && typeof syncSvgAnimationsPause === "function") {
+        syncSvgAnimationsPause();
+      }
+    }
+    if (els.achievementsModal && !els.achievementsModal.classList.contains("hidden")) {
+      updateAchievementsUI();
+    }
+    if (end < ACHIEVEMENTS_DATA.length) {
+      achBuildRaf = requestAnimationFrame(appendChunk);
+    }
+  };
+
+  achBuildRaf = requestAnimationFrame(appendChunk);
 }
 
 function ensureAchievementsBuilt() {
@@ -269,9 +309,7 @@ function updateAchievementsUI() {
       r.card.classList.toggle("unlocked", hasStars);
       setText(r.starsCount, `★ ${stageIdx}/${totalStars}`);
       for (let s = 0; s < r.stars.length; s++) {
-        const lit = s < stageIdx;
-        r.stars[s].classList.toggle("lit", lit);
-        r.starUses[s]?.setAttribute("href", lit ? "#ico-star-lit" : "#ico-star-off");
+        r.stars[s].classList.toggle("lit", s < stageIdx);
       }
     }
 
@@ -312,7 +350,7 @@ function updateAchievementsUI() {
   }
 
   if (achEmptyEl) {
-    const showEmpty = visibleCount === 0;
+    const showEmpty = achBuildDone && visibleCount === 0;
     achEmptyEl.classList.toggle("hidden", !showEmpty);
     if (showEmpty) {
       setText(
