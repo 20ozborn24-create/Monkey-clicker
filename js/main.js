@@ -508,7 +508,7 @@ function init() {
     buildQuestsList("weekly");
 
     requestAnimationFrame(() => {
-      buildShops();
+      buildShops(true);
       updateActiveMonkeyUI();
       setBuyMultiplier(1);
       initTapEffectPool();
