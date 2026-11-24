@@ -14,6 +14,8 @@ let lastShopJumpKey = "";
 let jumpHighlightTimer = null;
 let skinPopTimer = null;
 let shopScrollBound = false;
+let shopBuildToken = 0;
+let shopBuildRaf = null;
 
 const BANANA_RANKS = [
   ["", ""],
@@ -66,7 +68,61 @@ function openMonkeySkinsShortcut(monkeyIdx) {
   if (cards && cards[monkeyIdx]) cards[monkeyIdx].click();
 }
 
+function createBananaCard(b, idx) {
+  const card = mkEl(
+    "div",
+    "shop-item banana-item",
+    `<div class="shop-item-main">` +
+      `<div class="item-icon"><span class="item-icon-shine"></span><span class="item-tier">#${b.tier}</span>${createBananaSvg(b, "shop")}</div>` +
+      `<div class="item-info"><div class="item-name">${b.name}</div><div class="item-sub"><span class="item-bps-unit"></span> • Куплено: <span class="item-owned"></span></div></div>` +
+      `<button type="button" class="buy-btn cannot-afford"></button>` +
+    `</div>` +
+    `<div class="banana-prog-row hidden">` +
+      `<span class="banana-mult-pill">×1</span>` +
+      `<div class="banana-prog-track"><div class="banana-prog-fill"></div></div>` +
+      `<span class="banana-prog-text">0/25 → ×1.5</span>` +
+    `</div>`
+  );
+  card.querySelector(".buy-btn").onclick = () => buyBanana(idx);
+
+  bananaDomRefs[idx] = {
+    card,
+    btn: card.querySelector(".buy-btn"),
+    iconBox: card.querySelector(".item-icon"),
+    unitBpsSpan: card.querySelector(".item-bps-unit"),
+    countSpan: card.querySelector(".item-owned"),
+    progRow: card.querySelector(".banana-prog-row"),
+    multPill: card.querySelector(".banana-mult-pill"),
+    progFill: card.querySelector(".banana-prog-fill"),
+    progText: card.querySelector(".banana-prog-text"),
+    lastOwned: -1,
+    lastRank: -1,
+    lastMult: null,
+    cachedCostKey: "",
+    cachedCost: 0,
+    maxCacheKey: "",
+    maxMinBananas: 0,
+    maxNextBananas: 0
+  };
+  return card;
+}
+
+function flushRemainingBananasUpTo(targetIdx) {
+  if (!els.bananasList) return;
+  const limit = Math.min(BANANAS_DATA.length - 1, targetIdx);
+  if (bananaDomRefs.length > limit) return;
+
+  const frag = document.createDocumentFragment();
+  for (let i = bananaDomRefs.length; i <= limit; i++) {
+    frag.appendChild(createBananaCard(BANANAS_DATA[i], i));
+  }
+  els.bananasList.appendChild(frag);
+  markUiDirty("shop");
+  updateShopUI();
+}
+
 function jumpToFrontierBanana() {
+  flushRemainingBananasUpTo(shopJumpTargetIdx);
   const ref = bananaDomRefs[shopJumpTargetIdx];
   const list = els.bananasList;
   if (!ref || !ref.card || !list) return;
@@ -81,7 +137,7 @@ function jumpToFrontierBanana() {
   });
 
   for (let i = 0; i < bananaDomRefs.length; i++) {
-    bananaDomRefs[i].card.classList.remove("jump-highlight");
+    if (bananaDomRefs[i]) bananaDomRefs[i].card.classList.remove("jump-highlight");
   }
   void ref.card.offsetWidth;
   ref.card.classList.add("jump-highlight");
@@ -166,49 +222,50 @@ function updateShopJumpButton(showBananas) {
 
 function buildBananasList() {
   if (!els.bananasList) return;
+  if (shopBuildRaf) {
+    cancelAnimationFrame(shopBuildRaf);
+    shopBuildRaf = null;
+  }
+  const token = ++shopBuildToken;
   els.bananasList.innerHTML = "";
   bananaDomRefs.length = 0;
 
-  const frag = document.createDocumentFragment();
-  BANANAS_DATA.forEach((b, idx) => {
-    const card = mkEl(
-      "div",
-      "shop-item banana-item",
-      `<div class="shop-item-main">` +
-        `<div class="item-icon"><span class="item-icon-shine"></span><span class="item-tier">#${b.tier}</span>${createBananaSvg(b, "shop")}</div>` +
-        `<div class="item-info"><div class="item-name">${b.name}</div><div class="item-sub"><span class="item-bps-unit"></span> • Куплено: <span class="item-owned"></span></div></div>` +
-        `<button type="button" class="buy-btn cannot-afford"></button>` +
-      `</div>` +
-      `<div class="banana-prog-row hidden">` +
-        `<span class="banana-mult-pill">×1</span>` +
-        `<div class="banana-prog-track"><div class="banana-prog-fill"></div></div>` +
-        `<span class="banana-prog-text">0/25 → ×1.5</span>` +
-      `</div>`
-    );
-    card.querySelector(".buy-btn").onclick = () => buyBanana(idx);
-    frag.appendChild(card);
+  const firstBatch = Math.min(12, BANANAS_DATA.length);
+  const firstFrag = document.createDocumentFragment();
+  for (let i = 0; i < firstBatch; i++) {
+    firstFrag.appendChild(createBananaCard(BANANAS_DATA[i], i));
+  }
+  els.bananasList.appendChild(firstFrag);
 
-    bananaDomRefs.push({
-      card,
-      btn: card.querySelector(".buy-btn"),
-      iconBox: card.querySelector(".item-icon"),
-      unitBpsSpan: card.querySelector(".item-bps-unit"),
-      countSpan: card.querySelector(".item-owned"),
-      progRow: card.querySelector(".banana-prog-row"),
-      multPill: card.querySelector(".banana-mult-pill"),
-      progFill: card.querySelector(".banana-prog-fill"),
-      progText: card.querySelector(".banana-prog-text"),
-      lastOwned: -1,
-      lastRank: -1,
-      lastMult: null,
-      cachedCostKey: "",
-      cachedCost: 0,
-      maxCacheKey: "",
-      maxMinBananas: 0,
-      maxNextBananas: 0
-    });
-  });
-  els.bananasList.appendChild(frag);
+  const appendChunk = () => {
+    if (token !== shopBuildToken || !els.bananasList) return;
+    const start = bananaDomRefs.length;
+    if (start >= BANANAS_DATA.length) {
+      shopBuildRaf = null;
+      markUiDirty("shop");
+      updateShopUI();
+      return;
+    }
+
+    const end = Math.min(BANANAS_DATA.length, start + 15);
+    const frag = document.createDocumentFragment();
+    for (let i = start; i < end; i++) {
+      frag.appendChild(createBananaCard(BANANAS_DATA[i], i));
+    }
+    els.bananasList.appendChild(frag);
+    markUiDirty("shop");
+    updateShopUI();
+
+    if (end < BANANAS_DATA.length) {
+      shopBuildRaf = requestAnimationFrame(appendChunk);
+    } else {
+      shopBuildRaf = null;
+    }
+  };
+
+  if (firstBatch < BANANAS_DATA.length) {
+    shopBuildRaf = requestAnimationFrame(appendChunk);
+  }
 }
 
 function buildMonkeysList() {
@@ -361,7 +418,7 @@ function updateShopUI() {
     let nextSafeMax = Infinity;
 
     if (showBananas) {
-      for (let i = 0; i < BANANAS_DATA.length; i++) {
+      for (let i = 0; i < bananaDomRefs.length; i++) {
         const ref = bananaDomRefs[i];
         if (!ref) continue;
         const owned = state.bananaCounts[i] || 0;
