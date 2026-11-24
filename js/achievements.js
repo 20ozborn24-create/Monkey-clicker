@@ -85,7 +85,7 @@ function getAchProgress(ach) {
   return 0;
 }
 
-function createAchCard(ach) {
+function createAchRef(ach) {
   const totalStars = ach.stages.length;
   const starsHtml = `<span class="ach-star">★</span>`.repeat(totalStars);
 
@@ -136,7 +136,89 @@ function createAchCard(ach) {
   };
   achDomRefs.push(ref);
   if (ach.kind === "playTime") playTimeAchRef = ref;
-  return card;
+  return ref;
+}
+
+function syncAchRef(r) {
+  const stageIdx = state.achievementStages[r.ach.id] || 0;
+  const totalStars = r.ach.stages.length;
+  const hasStars = stageIdx > 0;
+  const show =
+    achFilter === "all" ||
+    (achFilter === "unlocked" && hasStars) ||
+    (achFilter === "locked" && !hasStars);
+
+  if (r.lastShow !== show) {
+    r.lastShow = show;
+    r.card.classList.toggle("hidden", !show);
+  }
+  if (!show) return false;
+
+  if (r.lastStageIdx !== stageIdx) {
+    r.lastStageIdx = stageIdx;
+    r.card.classList.toggle("unlocked", hasStars);
+    setText(r.starsCount, `★ ${stageIdx}/${totalStars}`);
+    for (let s = 0; s < r.stars.length; s++) {
+      r.stars[s].classList.toggle("lit", s < stageIdx);
+    }
+  }
+
+  if (stageIdx >= r.ach.stages.length) {
+    if (r.lastDone !== false) {
+      r.lastDone = false;
+      r.card.classList.remove("ach-ready");
+    }
+    if (r.lastDesc !== "done") {
+      r.lastDesc = "done";
+      r.descEl.textContent = "Все этапы пройдены!";
+      r.fill.style.width = "100%";
+      r.progText.textContent = "Максимум!";
+    }
+    syncBtnHtml(r, "Пройдено ✓", "ach-claim-btn claimed", true);
+    return true;
+  }
+
+  const stage = r.ach.stages[stageIdx];
+  const val = getAchProgress(r.ach);
+  const done = val >= stage.target;
+  const pct = `${Math.min(100, (val / stage.target) * 100).toFixed(1)}%`;
+  const shownVal = Math.min(Math.floor(val), stage.target);
+  const progStr = r.ach.kind === "playTime"
+    ? `${formatDurationLong(shownVal)} / ${formatDurationLong(stage.target)}`
+    : `${shownVal.toLocaleString("ru-RU")} / ${stage.target.toLocaleString("ru-RU")}`;
+
+  if (r.lastDesc !== stage.desc) { r.lastDesc = stage.desc; r.descEl.textContent = stage.desc; }
+  if (r.lastPct !== pct) { r.lastPct = pct; r.fill.style.width = pct; }
+  if (r.lastProg !== progStr) { r.lastProg = progStr; r.progText.textContent = progStr; }
+
+  if (r.lastDone !== done) {
+    r.lastDone = done;
+    r.card.classList.toggle("ach-ready", done);
+  }
+  if (done) syncBtnHtml(r, `Забрать +${stage.reward} ${gemHtml()}`, "ach-claim-btn ready", false);
+  else syncBtnHtml(r, `+${stage.reward} ${gemHtml()}`, "ach-claim-btn pending", true);
+  return true;
+}
+
+function updateAchEmptyState() {
+  if (!achEmptyEl) return;
+  let hasVisible = false;
+  for (let i = 0; i < achDomRefs.length; i++) {
+    if (achDomRefs[i].lastShow) {
+      hasVisible = true;
+      break;
+    }
+  }
+  const showEmpty = achBuildDone && !hasVisible;
+  achEmptyEl.classList.toggle("hidden", !showEmpty);
+  if (showEmpty) {
+    setText(
+      achEmptyEl,
+      achFilter === "unlocked"
+        ? "🏆 Пока нет открытых достижений — кликай по обезьяне, покупай бананы и забирай награды!"
+        : "👑 Поздравляем! Все достижения уже открыты!"
+    );
+  }
 }
 
 function buildAchievementsList() {
@@ -151,34 +233,40 @@ function buildAchievementsList() {
   achDomRefs.length = 0;
   playTimeAchRef = null;
   achBuildDone = false;
+  if (!state.achievementStages) state.achievementStages = {};
 
   achEmptyEl = mkEl("div", "ach-empty-state hidden");
   els.achievementsList.appendChild(achEmptyEl);
 
-  const firstCount = Math.min(10, ACHIEVEMENTS_DATA.length);
+  const firstCount = Math.min(12, ACHIEVEMENTS_DATA.length);
   const firstFrag = document.createDocumentFragment();
   for (let i = 0; i < firstCount; i++) {
-    firstFrag.appendChild(createAchCard(ACHIEVEMENTS_DATA[i]));
+    const ref = createAchRef(ACHIEVEMENTS_DATA[i]);
+    syncAchRef(ref);
+    firstFrag.appendChild(ref.card);
   }
   els.achievementsList.appendChild(firstFrag);
   achListBuilt = true;
-  achListDirty = true;
+  achListDirty = false;
+  lastAchFilter = achFilter;
 
   if (firstCount >= ACHIEVEMENTS_DATA.length) {
     achBuildDone = true;
+    updateAchEmptyState();
     return;
   }
 
   const appendChunk = () => {
     if (token !== achBuildToken || !els.achievementsList) return;
     const start = achDomRefs.length;
-    const end = Math.min(ACHIEVEMENTS_DATA.length, start + 14);
+    const end = Math.min(ACHIEVEMENTS_DATA.length, start + 18);
     const frag = document.createDocumentFragment();
     for (let i = start; i < end; i++) {
-      frag.appendChild(createAchCard(ACHIEVEMENTS_DATA[i]));
+      const ref = createAchRef(ACHIEVEMENTS_DATA[i]);
+      syncAchRef(ref);
+      frag.appendChild(ref.card);
     }
     els.achievementsList.appendChild(frag);
-    achListDirty = true;
 
     if (end >= ACHIEVEMENTS_DATA.length) {
       achBuildDone = true;
@@ -186,11 +274,8 @@ function buildAchievementsList() {
       if (state.lowPerfMode && typeof syncSvgAnimationsPause === "function") {
         syncSvgAnimationsPause();
       }
-    }
-    if (els.achievementsModal && !els.achievementsModal.classList.contains("hidden")) {
-      updateAchievementsUI();
-    }
-    if (end < ACHIEVEMENTS_DATA.length) {
+      updateAchEmptyState();
+    } else {
       achBuildRaf = requestAnimationFrame(appendChunk);
     }
   };
@@ -275,7 +360,10 @@ function checkAchievements() {
 
 function updateAchievementsUI() {
   if (!els.achievementsModal || els.achievementsModal.classList.contains("hidden")) return;
-  ensureAchievementsBuilt();
+  if (!achListBuilt) {
+    ensureAchievementsBuilt();
+    return;
+  }
   if (!achListDirty && lastAchFilter === achFilter) return;
 
   if (lastAchFilter !== achFilter && els.achievementsList?.parentElement) {
@@ -285,80 +373,8 @@ function updateAchievementsUI() {
   lastAchFilter = achFilter;
   if (!state.achievementStages) state.achievementStages = {};
 
-  let visibleCount = 0;
-
   for (let i = 0; i < achDomRefs.length; i++) {
-    const r = achDomRefs[i];
-    const stageIdx = state.achievementStages[r.ach.id] || 0;
-    const totalStars = r.ach.stages.length;
-    const hasStars = stageIdx > 0;
-    const show =
-      achFilter === "all" ||
-      (achFilter === "unlocked" && hasStars) ||
-      (achFilter === "locked" && !hasStars);
-
-    if (r.lastShow !== show) {
-      r.lastShow = show;
-      r.card.classList.toggle("hidden", !show);
-    }
-    if (!show) continue;
-    visibleCount++;
-
-    if (r.lastStageIdx !== stageIdx) {
-      r.lastStageIdx = stageIdx;
-      r.card.classList.toggle("unlocked", hasStars);
-      setText(r.starsCount, `★ ${stageIdx}/${totalStars}`);
-      for (let s = 0; s < r.stars.length; s++) {
-        r.stars[s].classList.toggle("lit", s < stageIdx);
-      }
-    }
-
-    if (stageIdx >= r.ach.stages.length) {
-      if (r.lastDone !== false) {
-        r.lastDone = false;
-        r.card.classList.remove("ach-ready");
-      }
-      if (r.lastDesc !== "done") {
-        r.lastDesc = "done";
-        r.descEl.textContent = "Все этапы пройдены!";
-        r.fill.style.width = "100%";
-        r.progText.textContent = "Максимум!";
-      }
-      syncBtnHtml(r, "Пройдено ✓", "ach-claim-btn claimed", true);
-      continue;
-    }
-
-    const stage = r.ach.stages[stageIdx];
-    const val = getAchProgress(r.ach);
-    const done = val >= stage.target;
-    const pct = `${Math.min(100, (val / stage.target) * 100).toFixed(1)}%`;
-    const shownVal = Math.min(Math.floor(val), stage.target);
-    const progStr = r.ach.kind === "playTime"
-      ? `${formatDurationLong(shownVal)} / ${formatDurationLong(stage.target)}`
-      : `${shownVal.toLocaleString("ru-RU")} / ${stage.target.toLocaleString("ru-RU")}`;
-
-    if (r.lastDesc !== stage.desc) { r.lastDesc = stage.desc; r.descEl.textContent = stage.desc; }
-    if (r.lastPct !== pct) { r.lastPct = pct; r.fill.style.width = pct; }
-    if (r.lastProg !== progStr) { r.lastProg = progStr; r.progText.textContent = progStr; }
-
-    if (r.lastDone !== done) {
-      r.lastDone = done;
-      r.card.classList.toggle("ach-ready", done);
-    }
-    if (done) syncBtnHtml(r, `Забрать +${stage.reward} ${gemHtml()}`, "ach-claim-btn ready", false);
-    else syncBtnHtml(r, `+${stage.reward} ${gemHtml()}`, "ach-claim-btn pending", true);
+    syncAchRef(achDomRefs[i]);
   }
-
-  if (achEmptyEl) {
-    const showEmpty = achBuildDone && visibleCount === 0;
-    achEmptyEl.classList.toggle("hidden", !showEmpty);
-    if (showEmpty) {
-      setText(
-        achEmptyEl,
-        achFilter === "unlocked"
-          ? "🏆 Пока нет открытых достижений — кликай по обезьяне, покупай бананы и забирай награды!"
-          : "👑 Поздравляем! Все достижения уже открыты!"
-      );
-    }
-  }
+  updateAchEmptyState();
 }
