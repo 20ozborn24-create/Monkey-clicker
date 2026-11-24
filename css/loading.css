@@ -1,4 +1,14 @@
 /* ================= ЗАГРУЗОЧНЫЙ ЭКРАН ================= */
+.app-shell.is-loading > :not(#loadingScreen) {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+.app-shell.is-loading > :not(#loadingScreen),
+.app-shell.is-loading > :not(#loadingScreen) * {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
 .loading-screen {
   position: absolute;
   inset: 0;
@@ -308,6 +318,7 @@
   width: 176px;
   margin-top: -18px;
   pointer-events: none;
+  contain: layout style paint;
 }
 .loading-pedestal-svg {
   width: 100%;
@@ -398,7 +409,6 @@
   transform-origin: left center;
   transform: scaleX(0);
   will-change: transform;
-  transition: transform 0.1s ease-out;
   background: linear-gradient(90deg, #16a34a 0%, #4ade80 35%, #facc15 78%, #fb923c 100%);
 }
 .loading-bar-orb {
