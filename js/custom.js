@@ -111,54 +111,37 @@ function applyBackground(bg) {
     });
   }
 
+  if (els.bgDropsLayer) els.bgDropsLayer.innerHTML = "";
+  if (!els.bgAmbientLayer) return;
+
   els.bgAmbientLayer.innerHTML = "";
   const frag = document.createDocumentFragment();
   const orb1 = bg.orb1 || "#fde047";
   const orb2 = bg.orb2 || "#38bdf8";
 
   [
-    ["-10%", "6%", 190, orb1, 9.5, 0],
-    ["62%", "14%", 170, orb2, 11.5, -3.5],
-    ["22%", "38%", 150, orb1, 13, -6.2]
-  ].forEach(([left, top, size, color, dur, delay]) => {
+    ["-10%", "6%", 180, orb1],
+    ["62%", "16%", 160, orb2]
+  ].forEach(([left, top, size, color]) => {
     const orb = mkEl("span", "bg-orb");
-    orb.style.cssText = `left:${left};top:${top};width:${size}px;height:${size}px;--orb-c:${color};--orb-dur:${dur}s;animation-delay:${delay}s`;
+    orb.style.cssText = `left:${left};top:${top};width:${size}px;height:${size}px;--orb-c:${color}`;
     frag.appendChild(orb);
   });
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 5; i++) {
     const star = mkEl("span", "bg-star");
-    star.style.cssText = `left:${((9 + i * 9.1) % 94).toFixed(1)}%;top:${6 + ((i * 17) % 48)}%;--star-dur:${(2.2 + (i % 4) * 0.7).toFixed(1)}s;animation-delay:-${(i * 0.6).toFixed(1)}s`;
+    star.style.cssText = `left:${((12 + i * 19) % 92).toFixed(1)}%;top:${8 + ((i * 11) % 42)}%;--star-dur:${(2.6 + (i % 3) * 0.8).toFixed(1)}s;animation-delay:-${(i * 0.7).toFixed(1)}s`;
     frag.appendChild(star);
-
-    const item = mkEl("span", "bg-ambient-item");
-    item.textContent = bg.drops[i % bg.drops.length];
-    item.style.cssText = `left:${6 + i * 9.5}%;font-size:${16 + (i % 3) * 5}px;animation-duration:${7 + (i % 4) * 2.4}s;animation-delay:-${(i * 1.3).toFixed(1)}s`;
-    frag.appendChild(item);
   }
 
   els.bgAmbientLayer.appendChild(frag);
 }
 
 function spawnBgDropParticles() {
-  if (state.lowPerfMode || !els.bgDropsLayer) return;
-  const drops = (BACKGROUNDS_DATA[state.profile.bgId] || BACKGROUNDS_DATA[0]).drops || ["🍌"];
-  for (let i = 0; i < 2; i++) {
-    if (els.bgDropsLayer.childElementCount > 28) els.bgDropsLayer.firstElementChild.remove();
-    const el = mkEl("span", "bg-drop-item");
-    const dur = 1.15 + Math.random() * 0.65;
-    el.textContent = drops[Math.floor(Math.random() * drops.length)];
-    el.style.left = `${5 + Math.random() * 88}%`;
-    el.style.fontSize = `${20 + Math.floor(Math.random() * 14)}px`;
-    el.style.setProperty("--drop-dur", `${dur.toFixed(2)}s`);
-    el.style.setProperty("--drop-dx", `${Math.round((Math.random() - 0.5) * 70)}px`);
-    el.style.setProperty("--drop-rot", `${Math.round((Math.random() - 0.5) * 320)}deg`);
-    els.bgDropsLayer.appendChild(el);
-    setTimeout(() => el.remove(), dur * 1000 + 80);
-  }
+  // Падающие частицы отключены для плавной работы без лагов
 }
 
-function selectCustom(key, unlockedKey, progKey, item, prefix, freq, drop = false) {
+function selectCustom(key, unlockedKey, progKey, item, prefix, freq) {
   if (!state[unlockedKey].includes(item.id)) {
     if (!spendDiamonds(item.cost)) return;
     const count = (state[progKey][item.id] || 0) + 1;
@@ -167,7 +150,6 @@ function selectCustom(key, unlockedKey, progKey, item, prefix, freq, drop = fals
       delete state[progKey][item.id];
       state[unlockedKey].push(item.id);
       state.profile[key] = item.id;
-      if (drop) spawnBgDropParticles();
       playSfx("unlock");
       showToast(`🎉 Открыто: ${item.name} (${CUSTOM_STEPS}/${CUSTOM_STEPS})!`);
     } else {
@@ -183,7 +165,6 @@ function selectCustom(key, unlockedKey, progKey, item, prefix, freq, drop = fals
   state.profile[key] = item.id;
   saveState();
   updateCustomizationUI();
-  if (drop) spawnBgDropParticles();
   playTone(freq, 0.08, "triangle", 0.06);
   showToast(`${prefix}: ${item.name}`);
 }
@@ -234,7 +215,6 @@ function executeMonkeySkinAction(monkeyId, skin) {
 
     playSfx("unlock");
     triggerHaptic([14, 24, 18]);
-    spawnBgDropParticles();
     showToast(
       isMonkeyOwned
         ? `🎭 Куплено и надето на экран: ${m.name} (${skin.name})!`
@@ -568,7 +548,7 @@ function buildBackgroundsGrid() {
     });
 
     card.type = "button";
-    card.onclick = () => selectCustom("bgId", "unlockedBgs", "bgProgress", bg, "Фон", 760, true);
+    card.onclick = () => selectCustom("bgId", "unlockedBgs", "bgProgress", bg, "Фон", 760);
     frag.appendChild(card);
     pushCustomRef(bgCardRefs, card, bg);
   });
