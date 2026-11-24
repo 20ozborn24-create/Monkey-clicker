@@ -215,7 +215,7 @@ function spawnTapEffects(clientX, clientY, gain) {
 }
 
 function onTap(clientX, clientY) {
-  if (!gameStarted || (els.loadingScreen && !els.loadingScreen.classList.contains("hidden"))) return;
+  if (!gameStarted) return;
   if (document.querySelector(".modal-overlay:not(.hidden)")) return;
 
   lastTapAt = performance.now();
@@ -500,7 +500,7 @@ function init() {
   applySettingsToUI();
   runLoadingScreen();
 
-  requestAnimationFrame(() => {
+  setTimeout(() => {
     if (els.headerBananaIcon) els.headerBananaIcon.innerHTML = createBananaSvg(BANANAS_DATA[1], "hdr");
     checkAndRefreshQuests("daily", false);
     checkAndRefreshQuests("weekly", false);
@@ -550,7 +550,7 @@ function init() {
         setInterval(triggerIdleMonkeyAnim, 3600);
       });
     });
-  });
+  }, 120);
 }
 
 init();
