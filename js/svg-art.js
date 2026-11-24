@@ -326,7 +326,9 @@ function createFrameDecoSvg(f, uid = "fr") {
   </svg>`;
 }
 
-function createBananaSvg(b, uid = "shop") {
+const bananaImgUriCache = {};
+
+function buildBananaSvgMarkup(b, uid = "shop") {
   const id = `${uid}_${b.id}`;
   const gId = `bGrad_${id}`;
   const cId = `bClip_${id}`;
@@ -544,22 +546,43 @@ function createBananaSvg(b, uid = "shop") {
   </svg>`;
 }
 
+function createBananaSvg(b, uid = "shop") {
+  if (uid === "shop" || uid === "ach") {
+    let uri = bananaImgUriCache[b.id];
+    if (!uri) {
+      const compactSvg = buildBananaSvgMarkup(b, "ico").replace(/\s{2,}/g, " ").replace(/>\s+</g, "><");
+      uri = "data:image/svg+xml;utf8," + encodeURIComponent(compactSvg);
+      bananaImgUriCache[b.id] = uri;
+    }
+    return `<img class="banana-svg-img" src="${uri}" alt="" decoding="async">`;
+  }
+  return buildBananaSvgMarkup(b, uid);
+}
+
 const monkeyImgCache = {};
 
 window.onMonkeyImgLoad = function (img, cacheKey) {
   monkeyImgCache[cacheKey] = img.src;
-  const fallback = img.nextElementSibling;
-  if (fallback && fallback.tagName && fallback.tagName.toLowerCase() === "svg") {
-    fallback.remove();
-  }
 };
 
-window.onMonkeyImgError = function (img, cacheKey, basePath) {
+window.onMonkeyImgError = function (img, cacheKey, basePath, monkeyId, uid, skinId) {
+  const applyFallback = () => {
+    const m = MONKEYS_DATA[monkeyId] || MONKEYS_DATA[0];
+    if (img.parentNode) {
+      img.outerHTML = buildFallbackMonkeySvg(m, uid || "main", skinId || 0);
+      if (state.lowPerfMode && typeof syncSvgAnimationsPause === "function") {
+        syncSvgAnimationsPause();
+      }
+    } else {
+      img.style.display = "none";
+    }
+  };
+
   if (monkeyImgCache[cacheKey] === false) {
-    img.style.display = "none";
-    if (img.nextElementSibling) img.nextElementSibling.style.display = "block";
+    applyFallback();
     return;
   }
+
   const exts = ["jpg", "webp"];
   const step = Number(img.dataset.t || 0);
   if (step < exts.length) {
@@ -567,8 +590,7 @@ window.onMonkeyImgError = function (img, cacheKey, basePath) {
     img.src = `${basePath}.${exts[step]}`;
   } else {
     monkeyImgCache[cacheKey] = false;
-    img.style.display = "none";
-    if (img.nextElementSibling) img.nextElementSibling.style.display = "block";
+    applyFallback();
   }
 };
 
@@ -585,12 +607,12 @@ function createMonkeySvg(m, uid = "main", skinOverride = null) {
   const cached = monkeyImgCache[cacheKey];
   if (cached === false) return buildFallbackMonkeySvg(m, uid, skinId);
 
-  const lazy = uid === "shop" || String(uid).startsWith("skin") ? ` loading="lazy"` : "";
+  const isLazy = uid === "shop" || String(uid).startsWith("skin");
+  const imgAttrs = isLazy ? ` loading="lazy" decoding="async"` : ` decoding="async"`;
+
   if (typeof cached === "string") {
-    return `<img class="monkey-img" src="${cached}" alt="${m.name}"${lazy}>`;
+    return `<img class="monkey-img" src="${cached}" alt="${m.name}"${imgAttrs}>`;
   }
 
-  const svg = buildFallbackMonkeySvg(m, uid, skinId);
-  return `<img class="monkey-img" src="${basePath}.png" alt="${m.name}"${lazy} onload="onMonkeyImgLoad(this,'${cacheKey}')" onerror="onMonkeyImgError(this,'${cacheKey}','${basePath}')">` +
-         svg.replace("<svg ", `<svg style="display:none" `);
+  return `<img class="monkey-img" src="${basePath}.png" alt="${m.name}"${imgAttrs} onload="onMonkeyImgLoad(this,'${cacheKey}')" onerror="onMonkeyImgError(this,'${cacheKey}','${basePath}',${m.id},'${uid}',${skinId})">`;
 }
