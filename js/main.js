@@ -4,15 +4,16 @@ let lastTickTime = performance.now();
 let tapAnimTimer = null;
 let lastTapAt = 0;
 let idleAnimTimer = null;
-let bgDropCounter = 0;
 let secondAccum = 0;
 let autosaveAccum = 0;
+let tapUiSyncTimer = null;
 
 let cachedTapBtnRect = null;
-let activeFloaters = 0;
-let activeRipples = 0;
-let activeSparks = 0;
-let activeEmotions = 0;
+let floatersLayerEl = null;
+const floaterPool = [];
+const ripplePool = [];
+let floaterPoolIdx = 0;
+let ripplePoolIdx = 0;
 
 let pendingOfflineDisplayEarned = 0;
 let pendingOfflineDisplaySeconds = 0;
@@ -78,11 +79,16 @@ function updateHeaderStatsUI() {
   if (lastHeaderBps !== bpsStr) { lastHeaderBps = bpsStr; setText(els.bpsDisplay, bpsStr); }
 }
 
-function updateTapUI() {
-  updateHeaderStatsUI();
+function flushTapUiSync() {
+  tapUiSyncTimer = null;
   updateShopUI();
   updateQuestsUI();
   if (uiDirty.ach) checkAchievements();
+}
+
+function scheduleTapUiSync() {
+  if (tapUiSyncTimer) return;
+  tapUiSyncTimer = setTimeout(flushTapUiSync, 120);
 }
 
 function updateUI(full = true) {
@@ -150,93 +156,61 @@ function applyOfflineIncome(allowShortSilent = false) {
   }
 }
 
+function initTapEffectPool() {
+  if (!floatersLayerEl) {
+    floatersLayerEl = mkEl("div", "floaters-layer");
+    document.body.appendChild(floatersLayerEl);
+    for (let i = 0; i < 8; i++) {
+      const el = mkEl("span", "floating-plus");
+      floatersLayerEl.appendChild(el);
+      floaterPool.push({ el, toggle: false });
+    }
+  }
+  if (els.monkeyTapBtn && !ripplePool.length) {
+    for (let i = 0; i < 3; i++) {
+      const r = mkEl("span", "tap-ripple");
+      els.monkeyTapBtn.appendChild(r);
+      ripplePool.push({ el: r, toggle: false });
+    }
+  }
+}
+
 function spawnTapEffects(clientX, clientY, gain) {
   if (!els.monkeyTapBtn) return;
-
-  const rect = getTapBtnRect();
-  const cx = rect ? rect.left + rect.width / 2 : 0;
-  const cy = rect ? rect.top + rect.height / 2 : 0;
-  const hasCoords = Number.isFinite(clientX) && Number.isFinite(clientY) && (clientX !== 0 || clientY !== 0);
-  const px = hasCoords ? clientX : cx;
-  const py = hasCoords ? clientY : cy;
-
-  const halfW = rect?.width ? rect.width / 2 : 78;
-  const halfH = rect?.height ? rect.height / 2 : 78;
-  const dx = Math.max(-1, Math.min(1, (px - cx) / halfW));
-  const dy = Math.max(-1, Math.min(1, (py - cy) / halfH));
-
-  els.monkeyTapBtn.style.setProperty("--tap-tx", `${(dx * 5).toFixed(1)}px`);
-  els.monkeyTapBtn.style.setProperty("--tap-rx", `${(-dy * 12).toFixed(1)}deg`);
-  els.monkeyTapBtn.style.setProperty("--tap-ry", `${(dx * 14).toFixed(1)}deg`);
-  els.monkeyTapBtn.style.setProperty("--tap-rz", `${(dx * 6 - 2).toFixed(1)}deg`);
 
   els.monkeyTapBtn.classList.add("tapped", "is-hyped");
   clearTimeout(tapAnimTimer);
   tapAnimTimer = setTimeout(() => {
     els.monkeyTapBtn.classList.remove("tapped");
     if (performance.now() - lastTapAt > 350) els.monkeyTapBtn.classList.remove("is-hyped");
-  }, 115);
+  }, 105);
 
   if (state.lowPerfMode) return;
 
-  if (activeFloaters < 14) {
-    activeFloaters++;
-    const floatEl = mkEl("span", feverActive ? "floating-plus fever-plus" : "floating-plus");
-    floatEl.textContent = `+${formatNum(gain)}`;
-    floatEl.style.left = `${px + (Math.random() - 0.5) * 26}px`;
-    floatEl.style.top = `${py - 14}px`;
-    document.body.appendChild(floatEl);
-    setTimeout(() => {
-      activeFloaters = Math.max(0, activeFloaters - 1);
-      floatEl.remove();
-    }, 750);
+  let px = clientX;
+  let py = clientY;
+  if (!Number.isFinite(px) || !Number.isFinite(py) || (px === 0 && py === 0)) {
+    const rect = getTapBtnRect();
+    px = rect ? rect.left + rect.width / 2 : 180;
+    py = rect ? rect.top + rect.height / 2 : 240;
   }
 
-  if (activeRipples < 4) {
-    activeRipples++;
-    const ripple = mkEl("span", "tap-ripple");
-    els.monkeyTapBtn.appendChild(ripple);
-    setTimeout(() => {
-      activeRipples = Math.max(0, activeRipples - 1);
-      ripple.remove();
-    }, 480);
+  if (floaterPool.length) {
+    const slot = floaterPool[floaterPoolIdx];
+    floaterPoolIdx = (floaterPoolIdx + 1) % floaterPool.length;
+    slot.toggle = !slot.toggle;
+    const fEl = slot.el;
+    fEl.textContent = `+${formatNum(gain)}`;
+    fEl.style.left = `${(px + (Math.random() - 0.5) * 24).toFixed(0)}px`;
+    fEl.style.top = `${(py - 14).toFixed(0)}px`;
+    fEl.className = `floating-plus${feverActive ? " fever-plus" : ""} ${slot.toggle ? "anim-a" : "anim-b"}`;
   }
 
-  if (activeSparks < 12) {
-    for (let i = 0; i < 3; i++) {
-      activeSparks++;
-      const spark = mkEl("span", "tap-spark");
-      const ang = Math.random() * Math.PI * 2;
-      const dist = 54 + Math.random() * 34;
-      spark.style.setProperty("--sx", `${Math.cos(ang) * dist}px`);
-      spark.style.setProperty("--sy", `${Math.sin(ang) * dist}px`);
-      els.monkeyTapBtn.appendChild(spark);
-      setTimeout(() => {
-        activeSparks = Math.max(0, activeSparks - 1);
-        spark.remove();
-      }, 460);
-    }
-  }
-
-  if (activeEmotions < 3 && Math.random() < 0.16) {
-    activeEmotions++;
-    const emojis = ["🍌", "✨", "😄", "🔥", "💚", "⭐"];
-    const emo = mkEl("span", "monkey-emotion");
-    emo.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-    emo.style.left = `${35 + Math.random() * 30}%`;
-    emo.style.top = `${20 + Math.random() * 20}%`;
-    emo.style.setProperty("--ex", `${Math.round((Math.random() - 0.5) * 44)}px`);
-    emo.style.setProperty("--er", `${Math.round((Math.random() - 0.5) * 32)}deg`);
-    els.monkeyTapBtn.appendChild(emo);
-    setTimeout(() => {
-      activeEmotions = Math.max(0, activeEmotions - 1);
-      emo.remove();
-    }, 900);
-  }
-
-  if (++bgDropCounter >= 4) {
-    bgDropCounter = 0;
-    spawnBgDropParticles();
+  if (ripplePool.length) {
+    const rSlot = ripplePool[ripplePoolIdx];
+    ripplePoolIdx = (ripplePoolIdx + 1) % ripplePool.length;
+    rSlot.toggle = !rSlot.toggle;
+    rSlot.el.className = `tap-ripple ${rSlot.toggle ? "anim-a" : "anim-b"}`;
   }
 }
 
@@ -257,7 +231,8 @@ function onTap(clientX, clientY) {
   triggerHaptic(8);
   playTone(feverActive ? 420 + (state.totalClicks % 5) * 35 : 310 + (state.totalClicks % 4) * 28, 0.045, "triangle", 0.04);
   spawnTapEffects(clientX, clientY, gain);
-  updateTapUI();
+  updateHeaderStatsUI();
+  scheduleTapUiSync();
 }
 
 function triggerIdleMonkeyAnim() {
@@ -526,53 +501,55 @@ function init() {
   runLoadingScreen();
 
   requestAnimationFrame(() => {
-    setTimeout(() => {
-      if (els.headerBananaIcon) els.headerBananaIcon.innerHTML = createBananaSvg(BANANAS_DATA[1], "hdr");
+    if (els.headerBananaIcon) els.headerBananaIcon.innerHTML = createBananaSvg(BANANAS_DATA[1], "hdr");
+    checkAndRefreshQuests("daily", false);
+    checkAndRefreshQuests("weekly", false);
+    buildQuestsList("daily");
+    buildQuestsList("weekly");
 
-      checkAndRefreshQuests("daily", false);
-      checkAndRefreshQuests("weekly", false);
-      buildQuestsList("daily");
-      buildQuestsList("weekly");
-
+    requestAnimationFrame(() => {
       buildShops();
       updateActiveMonkeyUI();
       setBuyMultiplier(1);
+      initTapEffectPool();
 
-      initCustomization();
-      initProfile();
-      initWheel();
-      initCoconuts();
-      initCollections();
-      initLevelModal();
-      initDailyLogin();
-      initGoldenBanana();
-      initModalsAndControls();
-      initLifecycleHandlers();
+      requestAnimationFrame(() => {
+        initCustomization();
+        initProfile();
+        initWheel();
+        initCoconuts();
+        initCollections();
+        initLevelModal();
+        initDailyLogin();
+        initGoldenBanana();
+        initModalsAndControls();
+        initLifecycleHandlers();
 
-      if (els.monkeyTapBtn) {
-        els.monkeyTapBtn.addEventListener("pointerdown", (e) => {
-          if (e.button !== undefined && e.button !== 0) return;
-          e.preventDefault();
-          onTap(e.clientX, e.clientY);
-        });
-        els.monkeyTapBtn.addEventListener("click", (e) => {
-          if (e.detail === 0) onTap(0, 0);
-        });
-      }
+        if (els.monkeyTapBtn) {
+          els.monkeyTapBtn.addEventListener("pointerdown", (e) => {
+            if (e.button !== undefined && e.button !== 0) return;
+            e.preventDefault();
+            onTap(e.clientX, e.clientY);
+          });
+          els.monkeyTapBtn.addEventListener("click", (e) => {
+            if (e.detail === 0) onTap(0, 0);
+          });
+        }
 
-      if (els.activeMonkeyBadge) {
-        els.activeMonkeyBadge.style.cursor = "pointer";
-        els.activeMonkeyBadge.title = "Выбрать скин для этой обезьянки";
-        els.activeMonkeyBadge.onclick = () => openMonkeySkinsShortcut?.(state.activeMonkeyId || 0);
-      }
+        if (els.activeMonkeyBadge) {
+          els.activeMonkeyBadge.style.cursor = "pointer";
+          els.activeMonkeyBadge.title = "Выбрать скин для этой обезьянки";
+          els.activeMonkeyBadge.onclick = () => openMonkeySkinsShortcut?.(state.activeMonkeyId || 0);
+        }
 
-      applyOfflineIncome();
-      updateUI(true);
+        applyOfflineIncome();
+        updateUI(true);
 
-      lastTickTime = performance.now();
-      setInterval(gameTick, 250);
-      setInterval(triggerIdleMonkeyAnim, 3600);
-    }, 30);
+        lastTickTime = performance.now();
+        setInterval(gameTick, 250);
+        setInterval(triggerIdleMonkeyAnim, 3600);
+      });
+    });
   });
 }
 
