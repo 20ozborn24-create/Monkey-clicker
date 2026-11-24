@@ -483,27 +483,27 @@
 /* ================= ВИРТУАЛИЗАЦИЯ ДЛИННЫХ СПИСКОВ ================= */
 .shop-item {
   content-visibility: auto;
-  contain-intrinsic-size: auto 74px;
+  contain-intrinsic-size: 74px;
   contain: layout style;
 }
 .ach-card {
   content-visibility: auto;
-  contain-intrinsic-size: auto 108px;
+  contain-intrinsic-size: 108px;
   contain: layout style paint;
 }
 .col-card {
   content-visibility: auto;
-  contain-intrinsic-size: auto 214px;
+  contain-intrinsic-size: 214px;
   contain: layout style paint;
 }
 .custom-card {
   content-visibility: auto;
-  contain-intrinsic-size: auto 152px;
+  contain-intrinsic-size: 152px;
   contain: layout style paint;
 }
 .style-card {
   content-visibility: auto;
-  contain-intrinsic-size: auto 60px;
+  contain-intrinsic-size: 60px;
   contain: layout style paint;
 }
 
